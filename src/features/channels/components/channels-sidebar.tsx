@@ -1,18 +1,21 @@
 'use client';
-
 import { useWorkspaceId } from '@/features/workspaces/hooks/use-workspace-id';
 import { useGetChannels } from '../api/use-get-channels';
-import { Separator } from '@radix-ui/react-separator';
-import { PlusIcon } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { MoreVerticalIcon, PlusIcon } from 'lucide-react';
 import { PageLoader } from '@/components/page-loader';
 import { useCreateChannelModal } from '../hooks/use-create-channel-modal';
 import { CreateChannelModal } from './create-channel-modal';
 import { PageError } from '@/components/page-error';
-import { TooltipTrigger } from '@radix-ui/react-tooltip';
-import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import ChannelActions from './channel-actions';
 
 const ChannelSidebar = () => {
   const workspaceId = useWorkspaceId();
@@ -20,6 +23,7 @@ const ChannelSidebar = () => {
   const { data: channels, isLoading: isLoadingChannels } = useGetChannels({
     workspaceId,
   });
+  // for deleting channel and its associated messages
   const { open } = useCreateChannelModal();
 
   const isSidebarLoading = isLoadingChannels;
@@ -58,7 +62,28 @@ const ChannelSidebar = () => {
                     selectedChannel ? 'border border-blue-400' : 'border-none'
                   )}
                 >
-                  <span>{channel.name}</span>
+                  <div className="flex flex-row gap-1.5 items-center justify-center">
+                    <ChannelActions id={channel.$id} workspaceId={workspaceId}>
+                      <MoreVerticalIcon className="size-4" />
+                    </ChannelActions>
+
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <span className="text-muted-foreground text-sm">
+                          {channel?.name && channel?.name.length > 15
+                            ? channel?.name?.substring(0, 15) + '...'
+                            : channel?.name}
+                        </span>
+                      </TooltipTrigger>
+                      {channel?.name && channel?.name.length > 15 && (
+                        <TooltipContent>
+                          <div className="flex flex-row items-center justify-center">
+                            {channel?.name}
+                          </div>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </div>
 
                   <Tooltip>
                     <TooltipTrigger>

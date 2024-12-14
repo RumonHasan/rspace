@@ -31,6 +31,7 @@ export const useJoinWorkspace = () => {
       toast.success('Joined workspace');
       queryClient.invalidateQueries({ queryKey: ['workspaces'] });
       queryClient.invalidateQueries({ queryKey: ['workspaces', data.$id] }); // updating that specific workspaces
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
     },
     onError: () => {
       toast.success('Failed To Join Workspace ');

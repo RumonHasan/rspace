@@ -4,12 +4,60 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { createChannelSchema } from '../schemas';
 import { getMember } from '@/features/members/utils';
-import { CHANNELS_ID, DATABASE_ID } from '@/config';
+import { CHANNELS_ID, CHATS_ID, DATABASE_ID } from '@/config';
 import { ID, Query } from 'node-appwrite';
 import { Channel } from '../types';
 import { createAdminClient } from '@/lib/appwrite';
 
 const app = new Hono()
+
+  // deleting a channel along with all its messages
+  .delete('/:channelId', sessionMiddleware, async (c) => {
+    const databases = c.get('databases');
+    const user = c.get('user');
+    const { channelId } = c.req.param();
+    // First get the actual channel document
+    const channel = await databases.getDocument(
+      DATABASE_ID,
+      CHANNELS_ID,
+      channelId // This should be the document ID
+    );
+    if (!channel) {
+      return c.json({ error: 'Channel not found' }, 404);
+    }
+    const member = await getMember({
+      databases,
+      workspaceId: channel.workspaceId,
+      userId: user.$id,
+    });
+
+    if (!member) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    // Delete channel
+    const deletedChannel = await databases.deleteDocument(
+      DATABASE_ID,
+      CHANNELS_ID,
+      channelId
+    );
+
+    // Delete associated messages
+    const chatsInChannel = await databases.listDocuments(
+      DATABASE_ID,
+      CHATS_ID,
+      [Query.equal('channelId', channelId)]
+    );
+    const chatIds = chatsInChannel?.documents.map((chat) => chat.$id);
+    // deleting associated messages
+    await Promise.all(
+      chatIds.map(async (chatId) => {
+        await databases.deleteDocument(DATABASE_ID, CHATS_ID, chatId);
+      })
+    );
+
+    return c.json({ data: deletedChannel });
+  })
 
   // creating a new channel
   .post(

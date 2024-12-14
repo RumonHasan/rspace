@@ -55,6 +55,7 @@ const ChatPanel = () => {
       unsubscribe = client.subscribe(
         `databases.${DATABASE_ID}.collections.${CHATS_ID}.documents`,
         (response: SubscriptionResponse) => {
+          console.log(response, 'Response');
           if (
             response.events.includes(
               'databases.*.collections.*.documents.*.create'
@@ -89,7 +90,7 @@ const ChatPanel = () => {
         unsubscribe();
       }
     };
-  }, [channelId, workspaceId, queryClient]);
+  }, []);
 
   return (
     <div className="flex flex-col">
@@ -133,7 +134,6 @@ const ChatPanel = () => {
         })}
         <div ref={messagesEndContainerRef} />
       </div>
-
     </div>
   );
 };
