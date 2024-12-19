@@ -9,16 +9,16 @@ import {
 } from '@/components/ui/dropdown-menu'; // Change the import to use shadcn/ui version
 import { TrashIcon, EditIcon } from 'lucide-react';
 import { useDeleteChannel } from '../api/use-delete-channel';
-
+import { useEditChannelModal } from '../hooks/use-edit-channel-modal';
 interface ChannelActionProps {
   id: string;
   workspaceId: string;
   children: React.ReactNode;
 }
-
 const ChannelActions = ({ id, workspaceId, children }: ChannelActionProps) => {
   const { mutate: deleteChannel, isPending: isDeletingChannel } =
     useDeleteChannel();
+  const { open: editChannelModalOpen } = useEditChannelModal(); // passing on the id to the channel modal
 
   const [ConfirmDialog, confirm] = useConfirm(
     'Delete Channel',
@@ -62,7 +62,14 @@ const ChannelActions = ({ id, workspaceId, children }: ChannelActionProps) => {
             <span className="text-muted-foreground">Delete</span>
             <TrashIcon className="w-[20px] h-[20px]" />
           </DropdownMenuItem>
-          <DropdownMenuItem className="font-medium p-[10px] cursor-pointer flex flex-row items-center justify-between">
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              editChannelModalOpen(id);
+            }}
+            className="font-medium p-[10px] cursor-pointer flex flex-row items-center justify-between"
+          >
             <span className="text-muted-foreground">Edit</span>
             <EditIcon className="w-[20px] h-[20px]" />
           </DropdownMenuItem>

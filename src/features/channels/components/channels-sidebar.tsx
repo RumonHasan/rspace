@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import ChannelActions from './channel-actions';
+import { EditChannelModal } from './edit-channel-modal';
 
 const ChannelSidebar = () => {
   const workspaceId = useWorkspaceId();
@@ -31,7 +32,6 @@ const ChannelSidebar = () => {
   if (!channels) {
     return <PageError message="No Channels To Be Loaded" />;
   }
-
   if (isSidebarLoading) {
     return <PageLoader />;
   }
@@ -39,6 +39,7 @@ const ChannelSidebar = () => {
   return (
     <div className="flex flex-col h-[700px] gap-2 border rounded-md shadow-sm p-4">
       <CreateChannelModal />
+      <EditChannelModal />
       <div className="flex flex-row gap-2 items-center justify-between">
         <span className="text-muted-foreground">Create Channel</span>
         <PlusIcon className="h-5 w-5 cursor-pointer" onClick={open} />

@@ -21,7 +21,6 @@ const DiscussionPage = () => {
     return <PageError message="No Channels Available" />;
   }
 
-  console.log(channels, 'show channels');
 
   if (channels?.total > 0) {
     redirect(

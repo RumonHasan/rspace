@@ -11,6 +11,45 @@ import { createAdminClient } from '@/lib/appwrite';
 
 const app = new Hono()
 
+  // update existing channel
+  .patch(
+    '/:channelId',
+    sessionMiddleware,
+    zValidator('json', createChannelSchema.partial()),
+    async (c) => {
+      const databases = c.get('databases');
+      const user = c.get('user');
+
+      const { workspaceId, name, membersId, description, identifier } =
+        c.req.valid('json');
+      const { channelId } = c.req.param();
+      const existingChannelToUpdate = await databases.getDocument<Channel>(
+        DATABASE_ID,
+        CHANNELS_ID,
+        channelId
+      );
+      const member = await getMember({
+        databases,
+        workspaceId: existingChannelToUpdate.workspaceId,
+        userId: user.$id,
+      });
+
+      if (!member) {
+        return c.json({ error: 'Unauthorized' }, 401);
+      }
+      // updating the document with the new data
+      await databases.updateDocument(DATABASE_ID, CHANNELS_ID, channelId, {
+        name,
+        workspaceId,
+        membersId,
+        description,
+        identifier,
+      });
+
+      return c.json({ data: existingChannelToUpdate.$id }, 200); // returning the id of the updated channel
+    }
+  )
+
   // deleting a channel along with all its messages
   .delete('/:channelId', sessionMiddleware, async (c) => {
     const databases = c.get('databases');
@@ -56,7 +95,7 @@ const app = new Hono()
       })
     );
 
-    return c.json({ data: deletedChannel });
+    return c.json({ data: deletedChannel }, 200);
   })
 
   // creating a new channel
@@ -107,7 +146,41 @@ const app = new Hono()
         }
       );
 
-      return c.json({ data: newChannel });
+      return c.json({ data: newChannel }, 200);
+    }
+  )
+
+  // route to fetch a single channel details
+  .get(
+    '/:channelId',
+    sessionMiddleware,
+    zValidator('param', z.object({ channelId: z.string() })),
+    async (c) => {
+      const databases = c.get('databases');
+      const user = c.get('user');
+
+      const { channelId } = c.req.param();
+
+      const existingChannel = await databases.getDocument<Channel>(
+        DATABASE_ID,
+        CHANNELS_ID,
+        channelId
+      );
+      if (!existingChannel) {
+        return c.json({ error: 'Channel not found' }, 401);
+      }
+
+      const member = await getMember({
+        databases,
+        workspaceId: existingChannel.workspaceId,
+        userId: user.$id,
+      });
+
+      if (!member) {
+        return c.json({ error: 'unauthorized' }, 401);
+      }
+
+      return c.json({ data: existingChannel }, 200);
     }
   )
 
@@ -165,12 +238,15 @@ const app = new Hono()
         })
       );
 
-      return c.json({
-        data: {
-          documents: populatedChannels,
-          total: populatedChannels.length,
+      return c.json(
+        {
+          data: {
+            documents: populatedChannels,
+            total: populatedChannels.length,
+          },
         },
-      });
+        200
+      );
     }
   );
 
