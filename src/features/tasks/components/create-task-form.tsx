@@ -133,8 +133,6 @@ export const CreateTaskForm = ({
         },
       }
     );
-    // creating checklists for the tasks
-    console.log('checklist after submission', checklists);
   };
   // asks ai to make a small description if task name is present
   const getAiSummary = async (e: React.MouseEvent<HTMLButtonElement>) => {

@@ -99,7 +99,6 @@ export const DataKanban = ({ data, onChange }: DataKanbanProps) => {
 
         // if there is no moved task , return the previously existed task;
         if (!movedTask) {
-          console.error('No task found in the source index');
           return prevTasks;
         }
 

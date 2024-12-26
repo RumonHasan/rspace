@@ -78,7 +78,6 @@ const app = new Hono()
         workspaceId,
         userId: user.$id,
       });
-      console.log(list, 'from server', 'checklist name', text);
 
       if (!member) {
         return c.json({ error: 'Unauthorized' }, 401);

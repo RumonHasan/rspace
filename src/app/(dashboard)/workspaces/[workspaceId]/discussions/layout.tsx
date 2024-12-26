@@ -11,7 +11,6 @@ const ChannelLayout = async ({ children }: ChannelLayoutProps) => {
         <ChannelSidebar />
       </div>
       <div className="flex-1 h-full">
-        {/* Added flex-1 here, removed max-w-screen-2xl */}
         <main className="w-full h-full">{children}</main>
       </div>
     </div>
