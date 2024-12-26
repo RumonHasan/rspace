@@ -45,7 +45,28 @@ const ChannelSidebar = () => {
         <PlusIcon className="h-5 w-5 cursor-pointer" onClick={open} />
       </div>
       <Separator />
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto flex flex-col gap-4">
+        <Link
+          key={workspaceId}
+          href={`/workspaces/${workspaceId}/discussions/ai`}
+          className="mb-1 group relative block"
+        >
+          <div
+            key={workspaceId}
+            className={cn(
+              'rounded-md flex flex-row items-center justify-between p-3 cursor-pointer',
+              'relative bg-white dark:bg-gray-800',
+              'transition-all duration-300 border-2 border-transparent',
+              'group-hover:border-blue-400 group-hover:text-glow-blue'
+            )}
+          >
+            <span className="text-muted-foreground group-hover:text-blue-400">
+              Talk With AI
+            </span>
+          </div>
+        </Link>
+
+        <span className=" text-muted-foreground mb-1">Channels:</span>
         {channels?.total > 0 ? (
           channels?.documents.map((channel) => {
             const { membersId } = channel;

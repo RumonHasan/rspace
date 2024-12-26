@@ -10,6 +10,7 @@ import ai from '@/features/ai/servers/route';
 import comments from '@/features/comments/server/route';
 import channels from '@/features/channels/server/route';
 import chats from '@/features/chats/server/route';
+import checklists from '@/features/checklists/server/route';
 
 const app = new Hono().basePath('/api');
 
@@ -24,7 +25,8 @@ const routes = app
   .route('/ai', ai)
   .route('/comments', comments)
   .route('/discussions', channels)
-  .route('/chats', chats);
+  .route('/chats', chats)
+  .route('/checklists', checklists);
 
 // redirecting to hono -- adding all the CRUD paths handler
 export const GET = handle(app);

@@ -96,3 +96,28 @@ body {
 .hide-scrollbar::--webkit-scrollbar {
   display: none;
 }
+
+.text-glow-blue {
+  text-shadow:
+    0 0 7px #fff,
+    0 0 10px #fff,
+    0 0 21px #fff,
+    0 0 42px #3b82f6,
+    0 0 82px #3b82f6;
+}
+
+@keyframes pulsate {
+  100% {
+    box-shadow: 0 0 4px #fff, 0 0 11px #fff, 0 0 19px #fff, 0 0 40px #3b82f6,
+      0 0 80px #3b82f6, 0 0 90px #3b82f6, 0 0 100px #3b82f6, 0 0 150px #3b82f6;
+  }
+
+  0% {
+    box-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 6px #fff, 0 0 10px #3b82f6,
+      0 0 45px #3b82f6, 0 0 55px #3b82f6, 0 0 70px #3b82f6, 0 0 80px #3b82f6;
+  }
+}
+
+.animate-pulsate {
+  animation: pulsate 1.5s infinite alternate;
+}

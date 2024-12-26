@@ -9,4 +9,5 @@ export const OPENAI_KEY = process.env.NEXT_PUBLIC_APP_OPENAI_KEY!;
 export const COMMENTS_ID = process.env.NEXT_PUBLIC_APPWRITE_COMMENTS_ID!;
 export const CHATS_ID = process.env.NEXT_PUBLIC_APPWRITE_CHATS_ID!;
 export const CHANNELS_ID = process.env.NEXT_PUBLIC_APPWRITE_CHANNELS_ID!;
-
+export const CHECKLISTS_ID = process.env.NEXT_PUBLIC_APPWRITE_CHECKLISTS_ID!;
+export const CHECKBOXES_ID = process.env.NEXT_PUBLIC_APPWRITE_CHECKBOX_ID!;

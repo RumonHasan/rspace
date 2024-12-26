@@ -1,32 +1,14 @@
 'use client';
-
 import { useChannelId } from '@/features/channels/hooks/use-channel-id';
 import { useWorkspaceId } from '@/features/workspaces/hooks/use-workspace-id';
 import { useGetMessages } from '../api/use-get-messages';
-import { client } from '@/lib/appwrite-client';
 import { useEffect, useRef } from 'react';
-import { CHATS_ID, DATABASE_ID } from '@/config';
-import { useQueryClient } from '@tanstack/react-query';
 import { useCurrent } from '@/features/auth/api/user-current';
 import { cn } from '@/lib/utils';
-import { Chat } from '../types';
-
-interface ChatProps extends Chat {
-  $createdAt: string;
-}
-interface QueryData {
-  documents: ChatProps[];
-}
-
-interface SubscriptionResponse {
-  events: string[];
-  payload: ChatProps;
-}
 
 const ChatPanel = () => {
   const channelId = useChannelId();
   const workspaceId = useWorkspaceId();
-  const queryClient = useQueryClient();
   const { data: currentUser } = useCurrent();
 
   const { data: messages } = useGetMessages({
@@ -46,51 +28,6 @@ const ChatPanel = () => {
   useEffect(() => {
     scrollToBottomMessage();
   }, [messages?.documents]);
-
-  // realtime functionality for getting messages
-  useEffect(() => {
-    let unsubscribe: () => void;
-
-    const setupSubscription = () => {
-      unsubscribe = client.subscribe(
-        `databases.${DATABASE_ID}.collections.${CHATS_ID}.documents`,
-        (response: SubscriptionResponse) => {
-          console.log(response, 'Response');
-          if (
-            response.events.includes(
-              'databases.*.collections.*.documents.*.create'
-            )
-          ) {
-            queryClient.setQueryData<QueryData>(
-              ['chats', workspaceId, channelId],
-              (oldData?: QueryData) => {
-                if (!oldData) return { documents: [response.payload] };
-
-                const newDocuments = [...oldData.documents, response.payload];
-
-                return {
-                  ...oldData,
-                  documents: newDocuments.sort(
-                    (a, b) =>
-                      new Date(b.$createdAt).getTime() -
-                      new Date(a.$createdAt).getTime()
-                  ),
-                };
-              }
-            );
-          }
-        }
-      );
-    };
-
-    setupSubscription();
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, []);
 
   return (
     <div className="flex flex-col">

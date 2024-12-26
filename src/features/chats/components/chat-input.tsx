@@ -39,34 +39,34 @@ const ChatInput = () => {
   const { mutate: createMessage, isPending: isCreatingMessage } =
     useCreateMessage();
 
-    const onSubmit = async (values: z.infer<typeof createChatSchema>) => {
-        if (!values.message.trim()) return; // Don't send empty messages
-    
-        createMessage(
-          {
-            form: {
-              ...values,
-              message: values.message.trim()
-            },
-          },
-          {
-            onSuccess: () => {
-              // Reset only the message field, keep other values
-              form.reset({
-                ...values,
-                message: ''
-              });
-            },
-            onSettled: () => {
-              // Enable form regardless of success/failure
-              form.reset({
-                ...values,
-                message: ''
-              });
-            }
-          }
-        );
-      };
+  const onSubmit = async (values: z.infer<typeof createChatSchema>) => {
+    if (!values.message.trim()) return; // Don't send empty messages
+
+    createMessage(
+      {
+        form: {
+          ...values,
+          message: values.message.trim(),
+        },
+      },
+      {
+        onSuccess: () => {
+          // Reset only the message field, keep other values
+          form.reset({
+            ...values,
+            message: '',
+          });
+        },
+        onSettled: () => {
+          // Enable form regardless of success/failure
+          form.reset({
+            ...values,
+            message: '',
+          });
+        },
+      }
+    );
+  };
   useEffect(() => {
     if (currentUser?.$id) {
       form.setValue('userId', currentUser.$id);
