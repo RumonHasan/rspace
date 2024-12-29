@@ -16,3 +16,14 @@ export const createChecklistSchema = z.object({
     )
     .optional(),
 });
+
+export const updateChecklistSchema = createChecklistSchema.extend({
+  list: z.array(
+    z.object({
+      checkboxId: z.string(),
+      checklistSetId: z.string(),
+      checkboxText: z.string(),
+      isCheckboxCompleted: z.boolean(),
+    })
+  ),
+});

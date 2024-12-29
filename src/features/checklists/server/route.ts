@@ -2,7 +2,7 @@ import { sessionMiddleware } from '@/lib/session-middleware';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { createChecklistSchema } from '../schema';
+import { createChecklistSchema, updateChecklistSchema } from '../schema';
 import { getMember } from '@/features/members/utils';
 import { CHECKBOXES_ID, CHECKLISTS_ID, DATABASE_ID } from '@/config';
 import { ID, Query } from 'node-appwrite';
@@ -58,6 +58,64 @@ const app = new Hono()
       );
 
       return c.json({ data: populatedChecklists });
+    }
+  )
+
+  // updating checklists
+
+  .patch(
+    '/:checklistId',
+    sessionMiddleware,
+    zValidator('json', updateChecklistSchema),
+    async (c) => {
+      const databases = c.get('databases');
+      const user = c.get('user');
+      const { checklistId } = c.req.param();
+
+      const { workspaceId, projectId, taskId, text, isCompleted, list } =
+        c.req.valid('json');
+
+      const member = await getMember({
+        databases,
+        workspaceId,
+        userId: user.$id,
+      });
+
+      if (!member) {
+        return c.json({ error: 'Unauthorized' }, 401);
+      }
+
+      const updatedChecklist = await databases.updateDocument(
+        DATABASE_ID,
+        CHECKLISTS_ID,
+        checklistId,
+        {
+          workspaceId,
+          projectId,
+          taskId,
+          text,
+          isCompleted,
+        }
+      );
+
+      const updatedCheckboxes = await Promise.all(
+        list.map(async (checkbox) => {
+          return databases.updateDocument(
+            DATABASE_ID,
+            CHECKBOXES_ID,
+            checkbox.checkboxId, // Use existing checkboxId instead of creating new
+            {
+              checkboxText: checkbox.checkboxText,
+              isCheckboxCompleted: checkbox.isCheckboxCompleted,
+            }
+          );
+        })
+      );
+
+      return c.json({
+        checklist: updatedChecklist,
+        checkboxes: updatedCheckboxes,
+      });
     }
   )
 

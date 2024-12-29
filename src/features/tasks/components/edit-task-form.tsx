@@ -30,17 +30,19 @@ import { MembersAvatar } from '@/features/members/components/members-avatar';
 import { Task, TaskStatus } from '../types';
 import { ProjectAvatar } from '@/features/projects/components/projects-avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { WandSparklesIcon } from 'lucide-react';
+import { CheckCheckIcon, WandSparklesIcon } from 'lucide-react';
 import { useGetAIResponse } from '@/features/ai/api/use-get-ai-description-summary';
 import { useState } from 'react';
 import { AiResponseDialog } from './ai-description-dialog';
 import { useUpdateTask } from '../api/use-update-task';
-
+import { ChecklistProgressMap, ChecklistUI } from '@/features/checklists/types';
+import { Checkbox } from '@/components/ui/checkbox';
+import ChecklistPercentageLoader from '@/features/checklists/components/checklist-percentage-loader';
+import { useUpdateChecklists } from '@/features/checklists/api/use-update-checklists';
 export interface AiResponseProps {
   content: string;
   type: string;
 }
-
 interface EditTaskFormProps {
   onCancel?: () => void;
   projectOptions: {
@@ -53,20 +55,39 @@ interface EditTaskFormProps {
     name: string;
   }[];
   initialValues: Task;
+  checklists: ChecklistUI[];
+  handleChecklistDelete: (existingId: string) => void;
+  handleCheckboxSubmit: (payload: string, checklistId: string) => void;
+  handleCheckboxChecked: (
+    checkboxId: string,
+    checkboxList: string,
+    checked: boolean
+  ) => void;
+  checklistProgress: ChecklistProgressMap;
 }
-
-// this is create task form
 
 export const EditTaskForm = ({
   onCancel,
   projectOptions,
   memberOptions,
   initialValues,
+  checklists,
+  handleChecklistDelete,
+  handleCheckboxSubmit,
+  handleCheckboxChecked,
+  checklistProgress,
 }: EditTaskFormProps) => {
   const [isAiResponseOpen, setIsAiResponseOpen] = useState<boolean>(false);
   const [isAiResponse, setIsAiResponse] = useState<AiResponseProps[]>([]);
+  const [isActiveChecklistId, setIsActiveChecklistId] = useState<string | null>(
+    null
+  );
+  const [checkboxInput, setCheckboxInput] = useState('');
+
   const { mutate, isPending } = useUpdateTask();
+  const { mutate: updateChecklist } = useUpdateChecklists();
   const workspaceId = useWorkspaceId();
+
   const { mutateAsync: generateAiSummary, isPending: isGeneratingAiSummary } =
     useGetAIResponse();
 
@@ -80,20 +101,40 @@ export const EditTaskForm = ({
     },
   });
 
-  const onSubmit = (values: z.infer<typeof createTaskSchema>) => {
+  const onSubmit = async (values: z.infer<typeof createTaskSchema>) => {
     mutate(
       { json: values, param: { taskId: initialValues.$id } },
       {
-        onSuccess: () => {
+        onSuccess: async (response) => {
+          const data = response.data;
+          // Update checklists
+          await Promise.all(
+            checklists.map(async (checklist) => {
+              const updatedChecklist = {
+                workspaceId: data.workspaceId,
+                projectId: data.projectId,
+                text: checklist.checklistName,
+                isCompleted: false,
+                taskId: data.$id,
+                list: checklist.list.map((item) => ({
+                  ...item,
+                  checklistSetId: checklist.checklistId, // Add this line
+                })),
+              };
+              // updating checklists
+              updateChecklist({
+                json: updatedChecklist,
+                param: { checklistId: checklist.checklistId },
+              });
+            })
+          );
           form.reset();
-          // Todo redirect to new task
-
           onCancel?.();
         },
       }
     );
   };
-  // asks ai to make a small description if task name is present
+
   const getAiSummary = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     const isTaskDescription = form.getValues('description');
@@ -103,7 +144,7 @@ export const EditTaskForm = ({
         json: {
           workspaceId,
           description: isTaskDescription ?? 'Description Unavailable',
-          formats: ['bulleted', 'narrative'], // Request both formats
+          formats: ['bulleted', 'narrative'],
         },
       });
       const { responses } = response.data.documents[0];
@@ -113,7 +154,7 @@ export const EditTaskForm = ({
       }
     }
   };
-  // passing the selected ai response to the form values and updating them
+
   const handleOnSelectAiResponse = (selectedResponse: AiResponseProps) => {
     if (selectedResponse) {
       form.setValue('description', selectedResponse.content);
@@ -129,7 +170,7 @@ export const EditTaskForm = ({
         onSelect={handleOnSelectAiResponse}
       />
       <CardHeader className="flex p-7">
-        <CardTitle className="text-xl font-bold">Edit A Task</CardTitle>
+        <CardTitle className="text-xl font-bold">Edit Task</CardTitle>
       </CardHeader>
       <div className="px-7">
         <Separator />
@@ -138,6 +179,7 @@ export const EditTaskForm = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-y-4">
+              {/* Task Name */}
               <FormField
                 control={form.control}
                 name="name"
@@ -151,6 +193,8 @@ export const EditTaskForm = ({
                   </FormItem>
                 )}
               />
+
+              {/* Due Date */}
               <FormField
                 control={form.control}
                 name="dueDate"
@@ -164,6 +208,8 @@ export const EditTaskForm = ({
                   </FormItem>
                 )}
               />
+
+              {/* Assignee */}
               <FormField
                 control={form.control}
                 name="assigneeId"
@@ -176,7 +222,7 @@ export const EditTaskForm = ({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="select Assignee"></SelectValue>
+                          <SelectValue placeholder="select Assignee" />
                         </SelectTrigger>
                       </FormControl>
                       <FormMessage />
@@ -188,7 +234,7 @@ export const EditTaskForm = ({
                                 name={member.name}
                                 className="size-6"
                               />
-                              <span> {member.name}</span>
+                              <span>{member.name}</span>
                             </div>
                           </SelectItem>
                         ))}
@@ -197,6 +243,8 @@ export const EditTaskForm = ({
                   </FormItem>
                 )}
               />
+
+              {/* Status */}
               <FormField
                 control={form.control}
                 name="status"
@@ -209,7 +257,7 @@ export const EditTaskForm = ({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="select Status"></SelectValue>
+                          <SelectValue placeholder="select Status" />
                         </SelectTrigger>
                       </FormControl>
                       <FormMessage />
@@ -230,6 +278,8 @@ export const EditTaskForm = ({
                   </FormItem>
                 )}
               />
+
+              {/* Project */}
               <FormField
                 control={form.control}
                 name="projectId"
@@ -242,7 +292,7 @@ export const EditTaskForm = ({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="select Project"></SelectValue>
+                          <SelectValue placeholder="select Project" />
                         </SelectTrigger>
                       </FormControl>
                       <FormMessage />
@@ -255,7 +305,7 @@ export const EditTaskForm = ({
                                 className="size-6"
                                 image={project.imageUrl}
                               />
-                              <span> {project.name}</span>
+                              <span>{project.name}</span>
                             </div>
                           </SelectItem>
                         ))}
@@ -264,6 +314,135 @@ export const EditTaskForm = ({
                   </FormItem>
                 )}
               />
+
+              {/* Checklists */}
+              {checklists?.map((checklist) => {
+                const { checklistName, checklistId, list } = checklist;
+                const isCurrentChecklistInputOpen =
+                  isActiveChecklistId === checklistId;
+                return (
+                  <div
+                    className="flex flex-col gap-0.1 items-start"
+                    key={checklistId}
+                  >
+                    <div className="flex w-full flex-1 justify-between">
+                      <div className="flex items-center justify-center gap-1">
+                        <CheckCheckIcon className="text-muted-foreground" />
+                        <span className="text-muted-foreground text-lg">
+                          {checklistName}
+                        </span>
+                      </div>
+                      <Button
+                        className="rounded-md"
+                        onClick={() => handleChecklistDelete(checklistId)}
+                      >
+                        <span>Delete</span>
+                      </Button>
+                    </div>
+
+                    <ChecklistPercentageLoader
+                      data={
+                        checklistProgress[checklistId] ?? {
+                          total: 0,
+                          completed: 0,
+                        }
+                      }
+                    />
+
+                    <div className="flex flex-col gap-2 w-full">
+                      {list.map((checkboxItem) => {
+                        const {
+                          checkboxId,
+                          checkboxText,
+                          checklistSetId,
+                          isCheckboxCompleted,
+                        } = checkboxItem;
+                        console.log(checklistSetId, 'id');
+                        return (
+                          <div
+                            key={checkboxId}
+                            className="flex items-center space-x-3"
+                          >
+                            <Checkbox
+                              id={checkboxId}
+                              checked={isCheckboxCompleted}
+                              onCheckedChange={() =>
+                                handleCheckboxChecked(
+                                  checkboxId,
+                                  checklistId,
+                                  isCheckboxCompleted
+                                )
+                              }
+                            />
+                            <label
+                              htmlFor={checkboxId}
+                              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 
+                              ${
+                                isCheckboxCompleted
+                                  ? 'line-through text-muted-foreground'
+                                  : ''
+                              }`}
+                            >
+                              {checkboxText}
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {isCurrentChecklistInputOpen ? (
+                      <div className="flex flex-col items-start justify-center w-full gap-2 mt-1.5">
+                        <Input
+                          className="w-full h-8"
+                          placeholder="Enter an item"
+                          value={checkboxInput}
+                          onChange={(e) => setCheckboxInput(e.target.value)}
+                        />
+                        <div className="flex flex-row gap-1">
+                          <Button
+                            type="button"
+                            className="h-8"
+                            variant={'outline'}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleCheckboxSubmit(checkboxInput, checklistId);
+                              setCheckboxInput('');
+                            }}
+                          >
+                            <span>Add</span>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={'outline'}
+                            className="h-8"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setIsActiveChecklistId(null);
+                              setCheckboxInput('');
+                            }}
+                          >
+                            <span>Cancel</span>
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        className="rounded-sm items-center justify-center h-8 mt-2"
+                        variant={'outline'}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsActiveChecklistId(checklistId);
+                        }}
+                      >
+                        <span>Add Item</span>
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
               {/**Ai powered task description */}
               <FormField
                 control={form.control}
