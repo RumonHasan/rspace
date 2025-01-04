@@ -364,7 +364,6 @@ export const EditTaskForm = ({
                         const {
                           checkboxId,
                           checkboxText,
-                          checklistSetId,
                           isCheckboxCompleted,
                         } = checkboxItem;
                         return (
