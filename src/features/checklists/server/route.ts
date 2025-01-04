@@ -62,7 +62,7 @@ const app = new Hono()
   )
 
   // updating checklists
-
+// single patch checklist update
   .patch(
     '/:checklistId',
     sessionMiddleware,
@@ -74,6 +74,8 @@ const app = new Hono()
 
       const { workspaceId, projectId, taskId, text, isCompleted, list } =
         c.req.valid('json');
+
+      console.log(list, 'received from frontend ui after changing');
 
       const member = await getMember({
         databases,
@@ -98,17 +100,52 @@ const app = new Hono()
         }
       );
 
+      // TODO need to make sure the case of new group of checklist if its added into an existing list
+      const existingCheckboxes = await databases.listDocuments(
+        DATABASE_ID,
+        CHECKBOXES_ID,
+        [Query.equal('checklistSetId', checklistId)]
+      );
+
+      const existingIds = new Set(
+        existingCheckboxes.documents.map((doc) => doc.$id)
+      ); // creating a list of set ids in order to save it for checking
+
+      // updating if there is any new checkbox added to the list
+      await Promise.all(
+        list.map(async (item) => {
+          // Check if the checkbox doesn't exist
+          if (!existingIds.has(item.checkboxId)) {
+            // Create new document only if it doesn't exist
+            await databases.createDocument<Checkbox>(
+              DATABASE_ID,
+              CHECKBOXES_ID,
+              ID.unique(),
+              {
+                checklistSetId: item.checklistSetId,
+                checkboxText: item.checkboxText,
+                isCheckboxCompleted: item.isCheckboxCompleted,
+              }
+            );
+          }
+        })
+      );
+
+
       const updatedCheckboxes = await Promise.all(
         list.map(async (checkbox) => {
-          return databases.updateDocument(
-            DATABASE_ID,
-            CHECKBOXES_ID,
-            checkbox.checkboxId, // Use existing checkboxId instead of creating new
-            {
-              checkboxText: checkbox.checkboxText,
-              isCheckboxCompleted: checkbox.isCheckboxCompleted,
-            }
-          );
+          // Only update if the checkbox exists
+          if (existingIds.has(checkbox.checkboxId)) {
+            return databases.updateDocument(
+              DATABASE_ID,
+              CHECKBOXES_ID,
+              checkbox.checkboxId,
+              {
+                checkboxText: checkbox.checkboxText,
+                isCheckboxCompleted: checkbox.isCheckboxCompleted,
+              }
+            );
+          }
         })
       );
 

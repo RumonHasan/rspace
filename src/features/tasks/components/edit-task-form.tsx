@@ -101,6 +101,7 @@ export const EditTaskForm = ({
     },
   });
 
+  // In your onSubmit function:
   const onSubmit = async (values: z.infer<typeof createTaskSchema>) => {
     mutate(
       { json: values, param: { taskId: initialValues.$id } },
@@ -110,18 +111,27 @@ export const EditTaskForm = ({
           // Update checklists
           await Promise.all(
             checklists.map(async (checklist) => {
+              // Create a clean checklist object
               const updatedChecklist = {
                 workspaceId: data.workspaceId,
                 projectId: data.projectId,
                 text: checklist.checklistName,
                 isCompleted: false,
                 taskId: data.$id,
+                // IMPORTANT: Create clean checkbox objects without spreading
                 list: checklist.list.map((item) => ({
-                  ...item,
-                  checklistSetId: checklist.checklistId, // Add this line
+                  checkboxId: item.checkboxId,
+                  checklistSetId: checklist.checklistId, // Always use the current checklist ID
+                  checkboxText: item.checkboxText,
+                  isCheckboxCompleted: item.isCheckboxCompleted,
                 })),
               };
-              // updating checklists
+
+              console.log(
+                `Updating checklist ${checklist.checklistId} with items:`,
+                updatedChecklist.list
+              );
+
               updateChecklist({
                 json: updatedChecklist,
                 param: { checklistId: checklist.checklistId },
