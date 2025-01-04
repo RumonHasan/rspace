@@ -367,7 +367,6 @@ export const EditTaskForm = ({
                           checklistSetId,
                           isCheckboxCompleted,
                         } = checkboxItem;
-                        console.log(checklistSetId, 'id');
                         return (
                           <div
                             key={checkboxId}
