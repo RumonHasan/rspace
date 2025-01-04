@@ -75,7 +75,6 @@ const app = new Hono()
       const { workspaceId, projectId, taskId, text, isCompleted, list } =
         c.req.valid('json');
 
-      console.log(list, 'received from frontend ui after changing');
 
       const member = await getMember({
         databases,

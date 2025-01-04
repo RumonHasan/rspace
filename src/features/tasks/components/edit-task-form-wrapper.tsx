@@ -38,7 +38,6 @@ export const EditTaskFormWrapper = ({
   // populating with existing checklist
   useEffect(() => {
     if (existingChecklists) {
-      console.log(existingChecklists, 'existing checklists');
       const newExistingChecklist: ChecklistUI[] = existingChecklists.map(
         (checklist) => {
           return {
@@ -104,7 +103,6 @@ export const EditTaskFormWrapper = ({
     checkboxListId: string,
     checked: boolean
   ) => {
-    console.log('Checkbox update:', { checkboxId, checkboxListId, checked });
     const newChecklists = checklists.map((checklist) => {
       const { checklistId, list } = checklist;
       if (checklistId === checkboxListId) {
