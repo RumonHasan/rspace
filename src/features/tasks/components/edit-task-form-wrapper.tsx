@@ -68,6 +68,7 @@ export const EditTaskFormWrapper = ({
     workspaceId,
   });
 
+
   const handleChecklistDelete = (existingId: string) => {
     const newList = [...checklists].filter(
       (checklist) => checklist.checklistId !== existingId
@@ -180,6 +181,7 @@ export const EditTaskFormWrapper = ({
     <div className="grid grid-cols-[1fr,200px] h-[85vh]">
       <div className="p-6 overflow-y-auto h-full">
         <EditTaskForm
+          taskId={id}
           checklistProgress={checklistProgress}
           handleCheckboxChecked={handleCheckboxChecked}
           checklists={checklists}

@@ -39,6 +39,8 @@ import { ChecklistProgressMap, ChecklistUI } from '@/features/checklists/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import ChecklistPercentageLoader from '@/features/checklists/components/checklist-percentage-loader';
 import { useUpdateChecklists } from '@/features/checklists/api/use-update-checklists';
+import { useCreateChecklists } from '@/features/checklists/api/use-post-checklists';
+import { useGetChecklists } from '@/features/checklists/api/use-get-checklists';
 export interface AiResponseProps {
   content: string;
   type: string;
@@ -64,6 +66,7 @@ interface EditTaskFormProps {
     checked: boolean
   ) => void;
   checklistProgress: ChecklistProgressMap;
+  taskId: string;
 }
 
 export const EditTaskForm = ({
@@ -76,17 +79,24 @@ export const EditTaskForm = ({
   handleCheckboxSubmit,
   handleCheckboxChecked,
   checklistProgress,
+  taskId,
 }: EditTaskFormProps) => {
   const [isAiResponseOpen, setIsAiResponseOpen] = useState<boolean>(false);
   const [isAiResponse, setIsAiResponse] = useState<AiResponseProps[]>([]);
   const [isActiveChecklistId, setIsActiveChecklistId] = useState<string | null>(
     null
   );
+  const workspaceId = useWorkspaceId();
   const [checkboxInput, setCheckboxInput] = useState('');
 
   const { mutate, isPending } = useUpdateTask();
+  // update and create checklist hooks
   const { mutate: updateChecklist } = useUpdateChecklists();
-  const workspaceId = useWorkspaceId();
+  const { mutate: createChecklist } = useCreateChecklists();
+  const { data: existingChecklists } = useGetChecklists({
+    workspaceId,
+    taskId,
+  });
 
   const { mutateAsync: generateAiSummary, isPending: isGeneratingAiSummary } =
     useGetAIResponse();
@@ -108,34 +118,48 @@ export const EditTaskForm = ({
       {
         onSuccess: async (response) => {
           const data = response.data;
+          // check if the current checklists exist or not then create or update
+          const existingChecklistIds = new Set(
+            existingChecklists?.map((checklist) => checklist.$id)
+          );
+
           // Update checklists
           await Promise.all(
             checklists.map(async (checklist) => {
-              // Create a clean checklist object
-              const updatedChecklist = {
-                workspaceId: data.workspaceId,
-                projectId: data.projectId,
-                text: checklist.checklistName,
-                isCompleted: false,
-                taskId: data.$id,
-                // IMPORTANT: Create clean checkbox objects without spreading
-                list: checklist.list.map((item) => ({
-                  checkboxId: item.checkboxId,
-                  checklistSetId: checklist.checklistId, // Always use the current checklist ID
-                  checkboxText: item.checkboxText,
-                  isCheckboxCompleted: item.isCheckboxCompleted,
-                })),
-              };
-
-              console.log(
-                `Updating checklist ${checklist.checklistId} with items:`,
-                updatedChecklist.list
-              );
-
-              updateChecklist({
-                json: updatedChecklist,
-                param: { checklistId: checklist.checklistId },
-              });
+              if (!existingChecklistIds.has(checklist.checklistId)) {
+                // create new checklist if the id does not exist in the original
+                const newChecklist = {
+                  workspaceId: data.workspaceId,
+                  projectId: data.projectId,
+                  text: checklist.checklistName,
+                  isCompleted: false,
+                  taskId: data.$id,
+                };
+                createChecklist({
+                  json: { ...newChecklist, list: checklist.list },
+                });
+              } else {
+                // updating the current checklist
+                const updatedChecklist = {
+                  workspaceId: data.workspaceId,
+                  projectId: data.projectId,
+                  text: checklist.checklistName,
+                  isCompleted: false,
+                  taskId: data.$id,
+                  // IMPORTANT: Create clean checkbox objects without spreading
+                  list: checklist.list.map((item) => ({
+                    checkboxId: item.checkboxId,
+                    checklistSetId: checklist.checklistId, // Always use the current checklist ID
+                    checkboxText: item.checkboxText,
+                    isCheckboxCompleted: item.isCheckboxCompleted,
+                  })),
+                };
+                // update functionality for a single existing checklist
+                updateChecklist({
+                  json: updatedChecklist,
+                  param: { checklistId: checklist.checklistId },
+                });
+              }
             })
           );
           form.reset();
@@ -145,6 +169,7 @@ export const EditTaskForm = ({
     );
   };
 
+  // fetches the ai summary
   const getAiSummary = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     const isTaskDescription = form.getValues('description');

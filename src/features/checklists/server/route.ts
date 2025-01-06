@@ -62,7 +62,7 @@ const app = new Hono()
   )
 
   // updating checklists
-// single patch checklist update
+  // single patch checklist update
   .patch(
     '/:checklistId',
     sessionMiddleware,
@@ -75,7 +75,6 @@ const app = new Hono()
       const { workspaceId, projectId, taskId, text, isCompleted, list } =
         c.req.valid('json');
 
-
       const member = await getMember({
         databases,
         workspaceId,
@@ -86,6 +85,9 @@ const app = new Hono()
         return c.json({ error: 'Unauthorized' }, 401);
       }
 
+      // updating new checklists that has been added
+
+      // updating existing checklists within a task
       const updatedChecklist = await databases.updateDocument(
         DATABASE_ID,
         CHECKLISTS_ID,
@@ -130,7 +132,6 @@ const app = new Hono()
         })
       );
 
-
       const updatedCheckboxes = await Promise.all(
         list.map(async (checkbox) => {
           // Only update if the checkbox exists
@@ -147,7 +148,6 @@ const app = new Hono()
           }
         })
       );
-
       return c.json({
         checklist: updatedChecklist,
         checkboxes: updatedCheckboxes,
