@@ -61,6 +61,52 @@ const app = new Hono()
     }
   )
 
+  // deleting checklist and all checkboxes associated with it
+  .delete('/:checklistId', sessionMiddleware, async (c) => {
+    const databases = c.get('databases');
+    const user = c.get('user');
+    const { checklistId } = c.req.param();
+
+    const existingChecklist = await databases.getDocument(
+      DATABASE_ID,
+      CHECKLISTS_ID,
+      checklistId
+    );
+
+    const member = await getMember({
+      databases,
+      workspaceId: existingChecklist.workspaceId,
+      userId: user.$id,
+    });
+
+    if (!member) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+    //deleting the checklist
+    const deletedChecklist = await databases.deleteDocument(
+      DATABASE_ID,
+      CHECKLISTS_ID,
+      existingChecklist.$id
+    );
+    // deleting checkboxes
+    const existingCheckboxes = await databases.listDocuments(
+      DATABASE_ID,
+      CHECKBOXES_ID,
+      [Query.equal('checklistSetId', checklistId)]
+    );
+    const existingCheckboxesIds = existingCheckboxes.documents.map(
+      (checkbox) => checkbox.$id
+    );
+
+    const deletedCheckboxes = await Promise.all(
+      existingCheckboxesIds.map(async (checkboxId) => {
+        return databases.deleteDocument(DATABASE_ID, CHECKBOXES_ID, checkboxId);
+      })
+    );
+
+    return c.json({ deletedChecklist, deletedCheckboxes }, 200);
+  })
+
   // updating checklists
   // single patch checklist update
   .patch(

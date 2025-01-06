@@ -41,6 +41,7 @@ import ChecklistPercentageLoader from '@/features/checklists/components/checklis
 import { useUpdateChecklists } from '@/features/checklists/api/use-update-checklists';
 import { useCreateChecklists } from '@/features/checklists/api/use-post-checklists';
 import { useGetChecklists } from '@/features/checklists/api/use-get-checklists';
+import { useDeleteChecklist } from '@/features/checklists/api/use-delete-checklist';
 export interface AiResponseProps {
   content: string;
   type: string;
@@ -75,10 +76,10 @@ export const EditTaskForm = ({
   memberOptions,
   initialValues,
   checklists,
-  handleChecklistDelete,
   handleCheckboxSubmit,
   handleCheckboxChecked,
   checklistProgress,
+  handleChecklistDelete,
   taskId,
 }: EditTaskFormProps) => {
   const [isAiResponseOpen, setIsAiResponseOpen] = useState<boolean>(false);
@@ -88,6 +89,7 @@ export const EditTaskForm = ({
   );
   const workspaceId = useWorkspaceId();
   const [checkboxInput, setCheckboxInput] = useState('');
+  const [deleteChecklistIds, setDeleteChecklistIds] = useState<string[]>([]);
 
   const { mutate, isPending } = useUpdateTask();
   // update and create checklist hooks
@@ -97,6 +99,7 @@ export const EditTaskForm = ({
     workspaceId,
     taskId,
   });
+  const { mutate: deleteChecklist } = useDeleteChecklist(); // when deleted from edit form it deletes in the backend also
 
   const { mutateAsync: generateAiSummary, isPending: isGeneratingAiSummary } =
     useGetAIResponse();
@@ -118,12 +121,19 @@ export const EditTaskForm = ({
       {
         onSuccess: async (response) => {
           const data = response.data;
+          // deleting if any existing checklist // on submissions all ids are deleted
+          if (deleteChecklistIds.length) {
+            await Promise.all(
+              deleteChecklistIds.map(async (checklistId) => {
+                deleteChecklist({ param: { checklistId: checklistId } });
+              })
+            );
+          }
           // check if the current checklists exist or not then create or update
           const existingChecklistIds = new Set(
             existingChecklists?.map((checklist) => checklist.$id)
           );
-
-          // Update checklists
+          // Update or add checklists
           await Promise.all(
             checklists.map(async (checklist) => {
               if (!existingChecklistIds.has(checklist.checklistId)) {
@@ -369,7 +379,13 @@ export const EditTaskForm = ({
                       </div>
                       <Button
                         className="rounded-md"
-                        onClick={() => handleChecklistDelete(checklistId)}
+                        onClick={() => {
+                          setDeleteChecklistIds((prevIds) => [
+                            ...prevIds,
+                            checklistId,
+                          ]);
+                          handleChecklistDelete(checklistId);
+                        }}
                       >
                         <span>Delete</span>
                       </Button>
