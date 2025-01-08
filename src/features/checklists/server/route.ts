@@ -131,8 +131,6 @@ const app = new Hono()
         return c.json({ error: 'Unauthorized' }, 401);
       }
 
-      // updating new checklists that has been added
-
       // updating existing checklists within a task
       const updatedChecklist = await databases.updateDocument(
         DATABASE_ID,

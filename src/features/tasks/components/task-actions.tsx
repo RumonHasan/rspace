@@ -28,7 +28,7 @@ export const TaskActions = ({ id, projectId, children }: TaskActionProps) => {
 
   const [DeleteTaskDialog, deleteTaskConfirm] = useConfirm(
     'Delete Task',
-    'This task will be deleted permanently',
+    'This task will be deleted permanently along with all its data including checklists, images and etc...',
     'destructive'
   );
   // deleting tasks
