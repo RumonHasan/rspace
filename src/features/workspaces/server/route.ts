@@ -3,6 +3,8 @@ import { Hono } from 'hono';
 import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas';
 import { sessionMiddleware } from '@/lib/session-middleware';
 import {
+  CHECKBOXES_ID,
+  CHECKLISTS_ID,
   COMMENTS_ID,
   DATABASE_ID,
   IMAGES_BUCKET_ID,
@@ -299,6 +301,46 @@ const app = new Hono()
         }
       })
     );
+
+    // deletion of associated checklists and checkboxes
+    const existingChecklists = await databases.listDocuments(
+      DATABASE_ID,
+      CHECKLISTS_ID,
+      [Query.equal('workspaceId', workspaceId)]
+    );
+    const existingCheckboxIds: string[] = [];
+    // existing checklist ids within a particular task
+    const existingChecklistIds = existingChecklists.documents.map(
+      (checklist) => checklist.$id
+    );
+    if (existingChecklistIds.length) {
+      await Promise.all(
+        existingChecklistIds.map(async (checklistId) => {
+          const existingCheckboxes = await databases.listDocuments(
+            DATABASE_ID,
+            CHECKBOXES_ID,
+            [Query.equal('checklistSetId', checklistId)]
+          );
+          existingCheckboxes.documents.map((checkbox) => {
+            const checkboxId = checkbox.$id;
+            existingCheckboxIds.push(checkboxId);
+          });
+          // deleting the checklist
+          await databases.deleteDocument(
+            DATABASE_ID,
+            CHECKLISTS_ID,
+            checklistId
+          );
+        })
+      );
+    }
+    // deleting the checkboxes based on the checklistSetIds
+    await Promise.all(
+      existingCheckboxIds.map(async (checkboxId) => {
+        await databases.deleteDocument(DATABASE_ID, CHECKBOXES_ID, checkboxId);
+      })
+    );
+
     // deleting all the related comments
     const comments = await databases.listDocuments<Comment>(
       DATABASE_ID,
@@ -316,6 +358,7 @@ const app = new Hono()
         }
       })
     );
+
     // deleting members
     const members = await databases.listDocuments(DATABASE_ID, MEMBERS_ID);
     await Promise.all(
