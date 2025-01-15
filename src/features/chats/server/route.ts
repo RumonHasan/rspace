@@ -10,6 +10,36 @@ import { createChatSchema } from '../schemas';
 
 const app = new Hono()
 
+  // getting a single message based on message id
+  .post(
+    '/get-message',
+    sessionMiddleware,
+    zValidator('json', z.object({ messageId: z.string() })),
+    async (c) => {
+      const databases = c.get('databases');
+      const user = c.get('user');
+      const { messageId } = c.req.valid('json');
+      // existing message
+      const existingMessage = await databases.getDocument(
+        DATABASE_ID,
+        CHATS_ID,
+        messageId
+      );
+
+      const member = await getMember({
+        databases,
+        workspaceId: existingMessage.workspaceId,
+        userId: user.$id,
+      });
+
+      if (!member) {
+        return c.json({ error: 'Unauthorized' }, 401);
+      }
+
+      return c.json({ data: existingMessage }, 200);
+    }
+  )
+
   // getting all the chats from a particular channel
   .get(
     '/',
