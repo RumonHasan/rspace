@@ -46,7 +46,7 @@ const ChannelSidebar = () => {
       </div>
       <Separator />
       <div className="flex-1 overflow-y-auto flex flex-col gap-4">
-        <Link
+        {/* <Link
           key={workspaceId}
           href={`/workspaces/${workspaceId}/discussions/ai`}
           className="mb-1 group relative block"
@@ -64,7 +64,7 @@ const ChannelSidebar = () => {
               Talk With AI
             </span>
           </div>
-        </Link>
+        </Link> */}
 
         <span className=" text-muted-foreground mb-1">Channels:</span>
         {channels?.total > 0 ? (

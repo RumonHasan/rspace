@@ -15,6 +15,7 @@ interface AiResponseDialogProps {
   setIsAiResponseOpen: (open: boolean) => void;
   aiResponses?: AiResponseProps[];
   onSelect?: (response: AiResponseProps) => void;
+  dialogTitle?: string;
 }
 // ai response dialog box
 export const AiResponseDialog = ({
@@ -22,6 +23,7 @@ export const AiResponseDialog = ({
   setIsAiResponseOpen, // opens the ai response dialog box
   aiResponses, // gets the accumulated ai responses
   onSelect, // passes the selected response to the parent company
+  dialogTitle = 'Your summarized task description',
 }: AiResponseDialogProps) => {
   // currently selected response
   const [selectedResponse, setSelectedResponse] =
@@ -31,9 +33,7 @@ export const AiResponseDialog = ({
     <Dialog open={isAiResponseOpen} onOpenChange={setIsAiResponseOpen}>
       <DialogContent className="w-full sm:max-w-[800px] p-6 border-none overflow-y-auto max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle className="text-xl mb-4">
-            Your Summarized Task Descriptions
-          </DialogTitle>
+          <DialogTitle className="text-xl mb-4">{dialogTitle}</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {aiResponses?.map((response, index) => {
