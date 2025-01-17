@@ -16,6 +16,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Chat } from '../types';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface ModifiedMessage extends Chat {
   isHovered: boolean;
@@ -38,6 +43,7 @@ const ChatPanel = () => {
   const messagesEndContainerRef = useRef<HTMLDivElement>(null);
   const [hoverDropdownOpen, setIsHoverDropdownOpen] = useState(false);
   const [replyMessage, setIsReplyMessage] = useState('');
+  const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({}); // will contain ref to all the message elements
 
   // message to reply
   const { mutate: getMessageToReply } = useGetMessage();
@@ -47,6 +53,16 @@ const ChatPanel = () => {
   const scrollToBottomMessage = () => {
     if (messagesEndContainerRef.current) {
       messagesEndContainerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+  // scrolling to original message when clicked from reply
+  const scrollToOriginalMessage = (originalMessageId: string) => {
+    const targetOriginalMessage = messageRefs.current[originalMessageId];
+    if (targetOriginalMessage) {
+      targetOriginalMessage.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
     }
   };
 
@@ -66,7 +82,7 @@ const ChatPanel = () => {
   // runs only when a new message has been added
   useEffect(() => {
     scrollToBottomMessage();
-  }, [messages]);
+  }, []);
 
   // adding id when hovered Message
   const handleOnHoverEnter = (id: string) => {
@@ -131,6 +147,7 @@ const ChatPanel = () => {
                   }),
                 },
               });
+              // closing the dropdown and clearing the input after return message is made
               setIsHoverDropdownOpen(false);
               setIsReplyMessage('');
             }
@@ -146,9 +163,15 @@ const ChatPanel = () => {
         {messages?.map((message) => {
           const { replyTo } = message;
           const replyToObject = replyTo ? JSON.parse(replyTo) : ''; // converts the reply to back to an object
+          const originalMessageId = replyToObject.id;
           const isCurrentUser = message.userId === currentUser?.$id;
           return (
             <div
+              ref={(el: HTMLDivElement | null) => {
+                if (el) {
+                  messageRefs.current[message.$id] = el;
+                }
+              }}
               onMouseEnter={() => handleOnHoverEnter(message.$id)}
               onMouseLeave={handleOnHoverLeave}
               key={message.$id}
@@ -177,17 +200,28 @@ const ChatPanel = () => {
                   </span>
                 </div>
 
+                {/* reply to messsage object */}
                 {replyToObject && (
-                  <div
-                    className={cn(
-                      'text-xs mb-1 rounded-md',
-                      isCurrentUser
-                        ? 'text-blue-100 bg-blue-400 p-1'
-                        : 'text-gray-500 bg-gray-400 p-1'
-                    )}
-                  >
-                    <span className="ml-2">{replyToObject.message}</span>
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div
+                        onClick={() =>
+                          scrollToOriginalMessage(originalMessageId)
+                        }
+                        className={cn(
+                          'text-xs mb-1 rounded-md cursor-pointer',
+                          isCurrentUser
+                            ? 'text-blue-100 bg-blue-400 p-1'
+                            : 'text-gray-500 bg-gray-400 p-1'
+                        )}
+                      >
+                        <span className="ml-2">{replyToObject.message}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Scroll To Message</p>
+                    </TooltipContent>
+                  </Tooltip>
                 )}
 
                 {/* Message content */}
@@ -204,7 +238,7 @@ const ChatPanel = () => {
                       onClick={() => {
                         setIsReplyMessage(''); // clearing state before opening
                       }}
-                      variant="ghost"
+                      variant="secondary"
                       size="sm"
                       className={cn(
                         'absolute top-2 flex items-center gap-1',
