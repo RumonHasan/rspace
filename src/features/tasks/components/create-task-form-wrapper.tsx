@@ -69,6 +69,29 @@ export const CreateTaskFormWrapper = ({
     }
   };
 
+  // deleting a checkbox within the ui
+  const handleCheckboxDelete = (checkboxId: string, checklistSetId: string) => {
+    const filteredChecklists = checklists.map((checklist) => {
+      const { checklistId, list } = checklist;
+      if (checklistId === checklistSetId) {
+        const updatedCheckboxList = list.filter(
+          (checkbox) => checkbox.checkboxId !== checkboxId
+        );
+        return {
+          ...checklist,
+          list: updatedCheckboxList,
+        };
+      } else {
+        return checklist;
+      }
+    });
+    setChecklists(filteredChecklists); // updating the ui with new checkbox list
+    // updating the filtered list progress value recalculations
+    if (filteredChecklists) {
+      updateProgressCheckboxList(checklistSetId, filteredChecklists);
+    }
+  };
+
   // updating a specific checkbox from a particular list
   const handleCheckboxChecked = (
     checkboxId: string,
@@ -103,7 +126,7 @@ export const CreateTaskFormWrapper = ({
     }
   };
 
-  // update progress list
+  // update progress checkbox list with latest loaded values
   const updateProgressCheckboxList = (
     checkboxListId: string,
     updatedChecklist: ChecklistUI[]
@@ -165,6 +188,7 @@ export const CreateTaskFormWrapper = ({
           projectOptions={projectOptions ?? []}
           handleChecklistDelete={handleChecklistDelete}
           handleCheckboxSubmit={handleCheckboxSubmit}
+          handleCheckboxDelete={handleCheckboxDelete}
         />
       </div>
       {/* Side Panel */}

@@ -31,7 +31,7 @@ import { MembersAvatar } from '@/features/members/components/members-avatar';
 import { TaskStatus } from '../types';
 import { ProjectAvatar } from '@/features/projects/components/projects-avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCheckIcon, WandSparklesIcon } from 'lucide-react';
+import { CheckCheckIcon, Trash2Icon, WandSparklesIcon } from 'lucide-react';
 import { useGetAIResponse } from '@/features/ai/api/use-get-ai-description-summary';
 import { useState } from 'react';
 import { AiResponseDialog } from './ai-description-dialog';
@@ -65,6 +65,7 @@ interface CreateTaskFormProps {
     checkboxList: string,
     checked: boolean
   ) => void;
+  handleCheckboxDelete: (checkboxId: string, checklistSetId: string) => void;
   checklistProgress: ChecklistProgressMap;
 }
 
@@ -75,6 +76,7 @@ export const CreateTaskForm = ({
   handleChecklistDelete,
   handleCheckboxSubmit,
   handleCheckboxChecked,
+  handleCheckboxDelete,
   checklistProgress,
   projectOptions,
   memberOptions,
@@ -352,30 +354,44 @@ export const CreateTaskForm = ({
                         return (
                           <div
                             key={checkboxId}
-                            className="flex items-center space-x-3 "
+                            className="flex items-center justify-between w-full "
                           >
-                            <Checkbox
-                              id={checkboxId}
-                              checked={isCheckboxCompleted}
-                              onCheckedChange={() =>
-                                handleCheckboxChecked(
-                                  checkboxId,
-                                  checklistSetId,
-                                  isCheckboxCompleted
-                                )
-                              }
-                            />
-                            <label
-                              htmlFor={checkboxId}
-                              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 
+                            <div className="flex flex-row gap-3 items-center">
+                              <Checkbox
+                                id={checkboxId}
+                                checked={isCheckboxCompleted}
+                                onCheckedChange={() =>
+                                  handleCheckboxChecked(
+                                    checkboxId,
+                                    checklistSetId,
+                                    isCheckboxCompleted
+                                  )
+                                }
+                              />
+                              <label
+                                htmlFor={checkboxId}
+                                className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 
                               ${
                                 isCheckboxCompleted
                                   ? 'line-through text-muted-foreground'
                                   : ''
                               }`}
-                            >
-                              {checkboxText}
-                            </label>
+                              >
+                                {checkboxText}
+                              </label>
+                            </div>
+
+                            <div className="flex items-center">
+                              <Trash2Icon
+                                className="size-6 cursor-pointer p-1 border border-border rounded-md transition text-muted-foreground hover:border-ring hover:text-foreground"
+                                onClick={() =>
+                                  handleCheckboxDelete(
+                                    checkboxId,
+                                    checklistSetId
+                                  )
+                                }
+                              />
+                            </div>
                           </div>
                         );
                       })}
