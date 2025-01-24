@@ -30,7 +30,7 @@ import { MembersAvatar } from '@/features/members/components/members-avatar';
 import { Task, TaskStatus } from '../types';
 import { ProjectAvatar } from '@/features/projects/components/projects-avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCheckIcon, WandSparklesIcon } from 'lucide-react';
+import { CheckCheckIcon, Trash2Icon, WandSparklesIcon } from 'lucide-react';
 import { useGetAIResponse } from '@/features/ai/api/use-get-ai-description-summary';
 import { useState } from 'react';
 import { AiResponseDialog } from './ai-description-dialog';
@@ -42,6 +42,7 @@ import { useUpdateChecklists } from '@/features/checklists/api/use-update-checkl
 import { useCreateChecklists } from '@/features/checklists/api/use-post-checklists';
 import { useGetChecklists } from '@/features/checklists/api/use-get-checklists';
 import { useDeleteChecklist } from '@/features/checklists/api/use-delete-checklist';
+import { useDeleteCheckbox } from '@/features/checklists/api/use-delete-checkbox';
 export interface AiResponseProps {
   content: string;
   type: string;
@@ -66,6 +67,7 @@ interface EditTaskFormProps {
     checkboxList: string,
     checked: boolean
   ) => void;
+  handleCheckboxDelete: (checkboxId: string, checklistSetId: string) => void;
   checklistProgress: ChecklistProgressMap;
   taskId: string;
 }
@@ -80,6 +82,7 @@ export const EditTaskForm = ({
   handleCheckboxChecked,
   checklistProgress,
   handleChecklistDelete,
+  handleCheckboxDelete,
   taskId,
 }: EditTaskFormProps) => {
   const [isAiResponseOpen, setIsAiResponseOpen] = useState<boolean>(false);
@@ -90,6 +93,9 @@ export const EditTaskForm = ({
   const workspaceId = useWorkspaceId();
   const [checkboxInput, setCheckboxInput] = useState('');
   const [deleteChecklistIds, setDeleteChecklistIds] = useState<string[]>([]);
+  const [deleteCheckboxIds, setDeleteCheckboxIds] = useState<
+    Record<string, string[]>
+  >({});
 
   const { mutate, isPending } = useUpdateTask();
   // update and create checklist hooks
@@ -100,6 +106,7 @@ export const EditTaskForm = ({
     taskId,
   });
   const { mutate: deleteChecklist } = useDeleteChecklist(); // when deleted from edit form it deletes in the backend also
+  const { mutate: deleteCheckbox } = useDeleteCheckbox(); // deleting individual checkbox from checklist
 
   const { mutateAsync: generateAiSummary, isPending: isGeneratingAiSummary } =
     useGetAIResponse();
@@ -121,7 +128,23 @@ export const EditTaskForm = ({
       {
         onSuccess: async (response) => {
           const data = response.data;
-          // deleting if any existing checklist // on submissions all ids are deleted
+
+          // deleting individual checkboxes
+          const deleteCheckboxlistKeys = Object.keys(deleteCheckboxIds);
+          if (deleteCheckboxlistKeys.length > 0) {
+            await Promise.all(
+              deleteCheckboxlistKeys.flatMap((checklistId) =>
+                deleteCheckboxIds[checklistId].map((checkboxId) =>
+                  deleteCheckbox({
+                    param: { checklistId },
+                    json: { checkboxId },
+                  })
+                )
+              )
+            );
+          }
+
+          // deleting entire checklists and its subcheckboxes
           if (deleteChecklistIds.length) {
             await Promise.all(
               deleteChecklistIds.map(async (checklistId) => {
@@ -129,7 +152,8 @@ export const EditTaskForm = ({
               })
             );
           }
-          // check if the current checklists exist or not then create or update
+
+          // updating current checklists after checking whether its available or not
           const existingChecklistIds = new Set(
             existingChecklists?.map((checklist) => checklist.$id)
           );
@@ -410,30 +434,50 @@ export const EditTaskForm = ({
                         return (
                           <div
                             key={checkboxId}
-                            className="flex items-center space-x-3"
+                            className="flex items-center justify-between w-full "
                           >
-                            <Checkbox
-                              id={checkboxId}
-                              checked={isCheckboxCompleted}
-                              onCheckedChange={() =>
-                                handleCheckboxChecked(
-                                  checkboxId,
-                                  checklistId,
-                                  isCheckboxCompleted
-                                )
-                              }
-                            />
-                            <label
-                              htmlFor={checkboxId}
-                              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 
+                            <div className="flex flex-row gap-3 items-center">
+                              <Checkbox
+                                id={checkboxId}
+                                checked={isCheckboxCompleted}
+                                onCheckedChange={() => {
+                                  // deleting checkbox from ui
+                                  handleCheckboxChecked(
+                                    checkboxId,
+                                    checklistId,
+                                    isCheckboxCompleted
+                                  );
+                                }}
+                              />
+                              <label
+                                htmlFor={checkboxId}
+                                className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 
                               ${
                                 isCheckboxCompleted
                                   ? 'line-through text-muted-foreground'
                                   : ''
                               }`}
-                            >
-                              {checkboxText}
-                            </label>
+                              >
+                                {checkboxText}
+                              </label>
+                            </div>
+
+                            <div className="flex items-center">
+                              <Trash2Icon
+                                className="size-6 cursor-pointer p-1 border border-border rounded-md transition text-muted-foreground hover:border-ring hover:text-foreground"
+                                onClick={() => {
+                                  // setting checkbox ids for particular checklist set id
+                                  setDeleteCheckboxIds((prevIds) => ({
+                                    ...prevIds,
+                                    [checklistId]: [
+                                      ...(prevIds[checklistId] || []),
+                                      checkboxId,
+                                    ],
+                                  }));
+                                  handleCheckboxDelete(checkboxId, checklistId);
+                                }}
+                              />
+                            </div>
                           </div>
                         );
                       })}

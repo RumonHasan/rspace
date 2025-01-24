@@ -61,6 +61,42 @@ const app = new Hono()
     }
   )
 
+  // route for deleting a checkbox directly from a checklist
+  .delete(
+    '/delete-checkbox/:checklistId',
+    sessionMiddleware,
+    zValidator('json', z.object({ checkboxId: z.string() })),
+    async (c) => {
+      const databases = c.get('databases');
+      const user = c.get('user');
+      const { checklistId } = c.req.param();
+      const { checkboxId } = c.req.valid('json');
+
+      const existingChecklist = await databases.getDocument(
+        DATABASE_ID,
+        CHECKLISTS_ID,
+        checklistId
+      );
+
+      const member = await getMember({
+        databases,
+        workspaceId: existingChecklist.workspaceId,
+        userId: user.$id,
+      });
+
+      if (!member) {
+        return c.json({ error: 'Unauthorized' }, 401);
+      }
+      // deleting the checkbox within the paritcular database of checklist
+      const deletedCheckbox = await databases.deleteDocument(
+        DATABASE_ID,
+        CHECKBOXES_ID,
+        checkboxId
+      );
+      return c.json({ data: deletedCheckbox }, 200);
+    }
+  )
+
   // deleting checklist and all checkboxes associated with it
   .delete('/:checklistId', sessionMiddleware, async (c) => {
     const databases = c.get('databases');
