@@ -40,12 +40,13 @@ const LandingPage = () => {
               >
                 Get Started
               </Link>
-              <Link
+              {/* <Link
                 href="/demo"
+                aria-disabled={true}
                 className="border-2 border-black text-black hover:bg-black hover:text-white px-8 py-3 rounded-lg font-medium transition-colors"
               >
                 Quick Demo
-              </Link>
+              </Link> */}
             </div>
           </div>
 
