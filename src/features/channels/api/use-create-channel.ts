@@ -21,7 +21,8 @@ export const useCreateChannel = () => {
         json,
       });
       if (!response.ok) {
-        throw new Error('Failed To Create Channel');
+        const errorData = await response.json();
+        throw new Error(errorData.error);
       }
       return await response.json();
     },
@@ -29,8 +30,9 @@ export const useCreateChannel = () => {
       toast.success('Channel has been added');
       queryClient.invalidateQueries({ queryKey: ['channels'] });
     },
-    onError: () => {
-      toast.error('Failed To Create Channel');
+    onError: (errorData) => {
+      const errorMessage = errorData.message || 'Failed to create channel';
+      toast.error(errorMessage);
     },
   });
   return mutation;

@@ -129,7 +129,7 @@ const app = new Hono()
       );
 
       if (existingChannel.documents.length > 0) {
-        return c.json({ error: 'Channel already exists' }, 401);
+        return c.json({ error: 'You already have a channel with these members' }, 401);
       }
 
       // creating a new channel
