@@ -8,7 +8,7 @@ import {
   GoHome,
   GoHomeFill,
 } from 'react-icons/go';
-import {MessageSquareIcon} from 'lucide-react';
+import { MessageSquareIcon, Globe2Icon } from 'lucide-react';
 
 import { useWorkspaceId } from '@/features/workspaces/hooks/use-workspace-id';
 import { usePathname } from 'next/navigation';
@@ -30,8 +30,7 @@ const routes = [
     label: 'Discussions',
     href: '/discussions',
     icon: MessageSquareIcon,
-    activeIcon: MessageSquareIcon
-    
+    activeIcon: MessageSquareIcon,
   },
   {
     label: 'Settings',
@@ -45,6 +44,13 @@ const routes = [
     href: '/members',
     icon: UsersIcon,
     activeIcon: UsersIcon,
+  },
+  // route for searching using sonar api of perplexity
+  {
+    label: 'RSearch',
+    href: '/rsearch',
+    icon: Globe2Icon,
+    activeIcon: Globe2Icon,
   },
 ];
 
@@ -60,7 +66,16 @@ const Navigation = () => {
         const isActive = pathName === fullHref;
         const Icon = isActive ? route.activeIcon : route.icon;
         return (
-          <Link key={route.href} href={fullHref}>
+          <Link
+            key={route.href}
+            href={fullHref}
+            onClick={(e) => {
+              // temporary disabling
+              if (route.label === 'RSearch') {
+                e.preventDefault();
+              }
+            }}
+          >
             <div
               className={cn(
                 'flex items-center gap-2.5 p-2.5 rounded-md font-medium hover:text-primary transition text-neutral-500',
@@ -68,7 +83,16 @@ const Navigation = () => {
               )}
             >
               <Icon className="size-5 text-neutral-500" />
-              {route.label}
+              {route.label === 'RSearch' ? (
+                <div className="flex gap-1 items-center">
+                  <span className="text-neutral-400">{route.label}</span>
+                  <span className="text-xs text-neutral-400">
+                    (Coming soon...)
+                  </span>
+                </div>
+              ) : (
+                route.label
+              )}
             </div>
           </Link>
         );

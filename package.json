@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/perplexity": "^1.0.2",
     "@hello-pangea/dnd": "17.0.0",
     "@hono/zod-validator": "^0.4.1",
     "@hookform/resolvers": "^3.9.0",

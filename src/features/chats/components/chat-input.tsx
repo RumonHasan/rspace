@@ -82,6 +82,7 @@ const ChatInput = () => {
       }
     );
   };
+  // TODO check the useEffects below for data redudancy
   useEffect(() => {
     if (currentUser?.$id) {
       form.setValue('userId', currentUser.$id);

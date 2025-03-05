@@ -23,6 +23,7 @@ interface TaskViewSwitcherProps {
   projectIdTasks?: string;
 }
 
+// file that contains different tasks views switches between grid, kanban, calander and charts
 export const TaskViewSwitcher = ({
   hideProjectFilter,
   projectIdTasks,

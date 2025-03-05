@@ -120,6 +120,7 @@ const app = new Hono()
       }
 
       const chatMembers = [...membersId, user.$id];
+      // custom channel identifier to prevent channel duplication with the same list of members
       const channelIdentifier = chatMembers.sort().join('');
       // check for existing channel
       const existingChannel = await databases.listDocuments(
@@ -129,7 +130,10 @@ const app = new Hono()
       );
 
       if (existingChannel.documents.length > 0) {
-        return c.json({ error: 'You already have a channel with these members' }, 401);
+        return c.json(
+          { error: 'You already have a channel with these members' },
+          400
+        );
       }
 
       // creating a new channel
