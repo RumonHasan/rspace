@@ -69,13 +69,13 @@ const ChatPanel = () => {
   // populating messages with addition component for boolean
   useEffect(() => {
     if (data?.documents) {
-      const modifiedMessages = data?.documents.map((message) => {
+      const hoverableMessages = data?.documents.map((message) => {
         return {
           ...message,
           isHovered: false,
         };
       });
-      setMessages(modifiedMessages);
+      setMessages(hoverableMessages);
     }
   }, [data]);
 

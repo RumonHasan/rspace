@@ -47,6 +47,7 @@ async function generateAIResponse(
 ): Promise<string> {
   const prompts = FORMAT_PROMPTS[format];
 
+  // open ai chat creation object
   const completion = await openai.chat.completions.create({
     messages: [
       {

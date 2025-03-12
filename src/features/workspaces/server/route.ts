@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas';
 import { sessionMiddleware } from '@/lib/session-middleware';
 import {
+  AI_CHAT_ID,
   CHECKBOXES_ID,
   CHECKLISTS_ID,
   COMMENTS_ID,
@@ -369,6 +370,19 @@ const app = new Hono()
         }
       })
     );
+
+    // deleting chats from the same work space
+    const aiChatsInWorkspace = await databases.listDocuments(
+      DATABASE_ID,
+      AI_CHAT_ID,
+      [Query.equal('workspaceId', workspaceId)]
+    );
+    await Promise.all(
+      aiChatsInWorkspace.documents.map(async (chat) => {
+        await databases.deleteDocument(DATABASE_ID, AI_CHAT_ID, chat.$id);
+      })
+    );
+
     return c.json({ data: { $id: workspaceId } }); // deleted id
   })
 

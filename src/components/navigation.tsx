@@ -66,16 +66,7 @@ const Navigation = () => {
         const isActive = pathName === fullHref;
         const Icon = isActive ? route.activeIcon : route.icon;
         return (
-          <Link
-            key={route.href}
-            href={fullHref}
-            onClick={(e) => {
-              // temporary disabling
-              if (route.label === 'RSearch') {
-                e.preventDefault();
-              }
-            }}
-          >
+          <Link key={route.href} href={fullHref}>
             <div
               className={cn(
                 'flex items-center gap-2.5 p-2.5 rounded-md font-medium hover:text-primary transition text-neutral-500',
@@ -83,16 +74,7 @@ const Navigation = () => {
               )}
             >
               <Icon className="size-5 text-neutral-500" />
-              {route.label === 'RSearch' ? (
-                <div className="flex gap-1 items-center">
-                  <span className="text-neutral-400">{route.label}</span>
-                  <span className="text-xs text-neutral-400">
-                    (Coming soon...)
-                  </span>
-                </div>
-              ) : (
-                route.label
-              )}
+              <span>{route.label}</span>
             </div>
           </Link>
         );

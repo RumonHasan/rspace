@@ -5,6 +5,7 @@ export const openai = new OpenAI({
   apiKey: OPENAI_KEY,
 });
 
+// cleans out fetched response
 export const responseCleaner = (response: string) => {
   return response
     .replace(/\*\*/g, '') // Remove bold
