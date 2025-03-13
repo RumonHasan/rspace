@@ -26,6 +26,7 @@ const AiChatBody = ({ aiChats }: AiChatBodyProps) => {
       // setting copy check index to show it has been selected
       const resetTime = 2000;
       setCopyIndex(copyIndex);
+      // after setting the copy index then turn it to null in order to reset time
       setTimeout(() => {
         setCopyIndex(null);
       }, resetTime);
@@ -76,7 +77,7 @@ const AiChatBody = ({ aiChats }: AiChatBodyProps) => {
               }}
             >
               <div className="flex gap-2 items-center cursor-pointer">
-                {copyIndex ? (
+                {index === copyIndex ? (
                   <CopyCheckIcon
                     size={16}
                     className="text-green-500 hover:text-green-600"

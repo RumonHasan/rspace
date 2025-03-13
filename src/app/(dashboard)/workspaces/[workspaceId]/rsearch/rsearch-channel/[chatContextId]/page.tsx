@@ -30,8 +30,11 @@ const ChannelContextIdPage = () => {
     })) ?? [];
 
   return (
-    <div className="flex flex-col justify-center items-center w-full">
-      <AiChatBody aiChats={transformedAiChats ?? []} />
+    <div className="flex flex-col justify-center items-center w-full overflow-hidden h-screen relative">
+      <div className="flex-1 overflow-y-auto w-full">
+        <AiChatBody aiChats={transformedAiChats ?? []} />
+      </div>
+
       <RSearchInputBottom />
     </div>
   );
