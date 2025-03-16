@@ -42,20 +42,20 @@ const RSearchInput = () => {
         },
         {
           onSuccess: (response) => {
-            console.log('Full response:', response);
-
-            if (response.data) {
-              // Check if response has the expected structure
-              const aiResponse = response.data.response?.response;
-
-              if (!aiResponse || !aiResponse.chatContextId) {
-                console.error('Missing chatContextId in response:', aiResponse);
-                return; // Handle the error appropriately
-              }
-              const jumpToCurrentContextPath = `workspaces/${workspaceId}/rsearch/rsearch-channel/${aiResponse.chatContextId}`;
-              router.push(jumpToCurrentContextPath);
-              form.reset({ query: '', workspaceId });
+            if (!response?.data) {
+              console.error('No data in response');
+              return;
             }
+            const chatContextId = response.data.response?.chatContextId;
+
+            if (!chatContextId) {
+              console.error('Missing chatContextId:', response.data);
+              return;
+            }
+
+            router.push(
+              `/workspaces/${workspaceId}/rsearch/rsearch-channel/${chatContextId}`
+            );
           },
         }
       );
