@@ -17,7 +17,11 @@ import { useWorkspaceId } from '@/features/workspaces/hooks/use-workspace-id';
 import RecentSearches from './recent-searches';
 import { useRouter } from 'next/navigation';
 
-const RSearchInput = () => {
+interface RSearchInputProps {
+  setIsAiResponding: (value: boolean) => void;
+}
+
+const RSearchInput = ({ setIsAiResponding }: RSearchInputProps) => {
   const router = useRouter();
   const { mutate: generateSonarResponse, isPending: isFetchingSonarResponse } =
     useGetSonarResponse(); // hook that calls the sonar api
@@ -32,6 +36,7 @@ const RSearchInput = () => {
   // for submitting the first search query
   const onSubmit = (values: z.infer<typeof searchSchema>) => {
     if (values.query) {
+      setIsAiResponding(true);
       // Call the sonar API with the query
       generateSonarResponse(
         {
@@ -57,6 +62,9 @@ const RSearchInput = () => {
               `/workspaces/${workspaceId}/rsearch/rsearch-channel/${chatContextId}`
             );
           },
+          onSettled: () => {
+            setIsAiResponding(false);
+          },
         }
       );
     }
@@ -80,7 +88,7 @@ const RSearchInput = () => {
               name="query"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-center items-center">
                     <FormControl>
                       <Textarea
                         onKeyDown={handleKeyDown}
