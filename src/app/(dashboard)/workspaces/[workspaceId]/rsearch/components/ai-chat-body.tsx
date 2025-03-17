@@ -33,6 +33,8 @@ const AiChatBody = ({ aiChats }: AiChatBodyProps) => {
     });
   };
 
+  console.log(formattedAiChats, 'formatted chats');
+
   return (
     <div className="flex flex-col w-full max-w-3xl mx-auto space-y-6 py-4">
       {formattedAiChats.map((chat, index) => (
@@ -58,9 +60,11 @@ const AiChatBody = ({ aiChats }: AiChatBodyProps) => {
                     <span className="text-blue-500 text-sm">A</span>
                   </div>
                   <div className="flex-1 prose prose-sm max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {chat.response}
-                    </ReactMarkdown>
+                    <div className="markdown-body">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {chat.response}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 </div>
               </div>

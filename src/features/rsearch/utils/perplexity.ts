@@ -8,20 +8,20 @@ const perplexity = new OpenAI({
   baseURL: 'https://api.perplexity.ai',
 });
 
-type FormatType = 'narrative';
+type FormatType = 'markdown';
 
 interface AIPrompt {
   systemPrompt: string;
   followUpPrompt: string;
 }
 
-// sonar prompt formatter
+// sonar prompt formatter into markdown
 const FORMAT_PROMPTS: Record<FormatType, AIPrompt> = {
-  narrative: {
+  markdown: {
     systemPrompt:
-      'You are a text structuring assistant. Your task is to organize the provided text into a clear, narrative paragraph format. Maintain a flowing, coherent structure while preserving all key information.',
+      'You are a text structuring and formatting assistant. Your task is to organize the provided text into a clear, narrative format using markdown syntax. Use appropriate markdown elements to enhance readability and structure.',
     followUpPrompt:
-      'Rewrite the above text in a clear, flowing narrative format. Maintain all original information but present it in a coherent paragraph structure.',
+      'Rewrite the above text in a clear, flowing narrative format using markdown. Maintain all original information but present it in a coherent structure. Use the following markdown elements as appropriate:\n\n- Headers (## for main sections, ### for subsections)\n- Bold (**) for emphasis\n- Italic (*) for subtle emphasis\n- Bullet points (-) or numbered lists (1., 2., etc.) for enumerations\n- Blockquotes (>) for notable quotes or excerpts\n- Code blocks (```)',
   },
 };
 

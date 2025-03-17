@@ -113,7 +113,7 @@ const app = new Hono()
       if (!member) {
         return c.json({ error: 'Unauthorized' }, 401);
       }
-      const sonarResponse = await generateSonarResponse(query, 'narrative');
+      const sonarResponse = await generateSonarResponse(query, 'markdown');
       // passing the same context id when creating new query
       const newAiChatHuman = await databases.createDocument(
         DATABASE_ID,
@@ -171,7 +171,7 @@ const app = new Hono()
       if (!member) {
         return c.json({ error: 'Unauthorized' }, 401);
       }
-      const sonarResponse = await generateSonarResponse(query, 'narrative');
+      const sonarResponse = await generateSonarResponse(query, 'markdown');
       const newChatContextId = ID.unique(); // to create a new chat context id when the intial input is clicked
       // adding chat as a human query first
       const newAiChatHuman = await databases.createDocument(
