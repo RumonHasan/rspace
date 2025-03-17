@@ -33,8 +33,6 @@ const AiChatBody = ({ aiChats }: AiChatBodyProps) => {
     });
   };
 
-  console.log(formattedAiChats, 'formatted chats');
-
   return (
     <div className="flex flex-col w-full max-w-3xl mx-auto space-y-6 py-4">
       {formattedAiChats.map((chat, index) => (

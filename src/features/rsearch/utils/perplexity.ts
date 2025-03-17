@@ -32,7 +32,6 @@ export async function generateSonarResponse(
 ) {
   try {
     const promptStructure = FORMAT_PROMPTS[format];
-    console.log(prompt);
     const sonarCompletionResponses = await perplexity.chat.completions.create({
       messages: [
         {
