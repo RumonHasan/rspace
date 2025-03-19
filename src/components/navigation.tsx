@@ -8,6 +8,7 @@ import {
   GoHome,
   GoHomeFill,
 } from 'react-icons/go';
+import { CgNotes } from "react-icons/cg";
 import { MessageSquareIcon, Globe2Icon } from 'lucide-react';
 
 import { useWorkspaceId } from '@/features/workspaces/hooks/use-workspace-id';
@@ -52,6 +53,18 @@ const routes = [
     icon: Globe2Icon,
     activeIcon: Globe2Icon,
   },
+  {
+    label: 'Notes',
+    href: '/notes',
+    icon: CgNotes,
+    activeIcon: CgNotes
+  }
+  // {
+  //   label: 'Document Analyzer',
+  //   href: '/document-analyzer',
+  //   icon: IoDocument,
+  //   activeIcon: IoDocument,
+  // },
 ];
 
 const Navigation = () => {

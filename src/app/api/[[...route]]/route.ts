@@ -12,6 +12,7 @@ import channels from '@/features/channels/server/route';
 import chats from '@/features/chats/server/route';
 import checklists from '@/features/checklists/server/route';
 import rsearch from '@/features/rsearch/servers/route';
+import notes from '@/features/notes/server/route';
 
 const app = new Hono().basePath('/api');
 
@@ -28,7 +29,8 @@ const routes = app
   .route('/discussions', channels)
   .route('/chats', chats)
   .route('/checklists', checklists)
-  .route('/rsearch', rsearch); // for search perplexity routes
+  .route('/rsearch', rsearch) // for search perplexity routes
+  .route('/notes', notes);
 
 // redirecting to hono -- adding all the CRUD paths handler
 export const GET = handle(app);

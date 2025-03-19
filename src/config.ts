@@ -14,3 +14,4 @@ export const CHECKBOXES_ID = process.env.NEXT_PUBLIC_APPWRITE_CHECKBOX_ID!;
 export const SEARCH_QUERIES_ID = process.env.NEXT_PUBLIC_APP_SEARCH_QUERIES!;
 export const SONAR_ID = process.env.NEXT_PUBLIC_APP_PERPLEXITY_API_KEY!; // api key for perplexity
 export const AI_CHAT_ID = process.env.NEXT_PUBLIC_APPWRITE_AI_CHAT!;
+export const NOTES_ID = process.env.NEXT_PUBLIC_APPWRITE_NOTES!;
