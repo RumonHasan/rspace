@@ -33,12 +33,7 @@ const app = new Hono()
     }
 
     // deleted note object
-    const deletedNote = await databases.deleteDocument(
-      DATABASE_ID,
-      NOTES_ID,
-      noteId
-    );
-
+    await databases.deleteDocument(DATABASE_ID, NOTES_ID, noteId);
     // more logic needed to be entered for the ai chats to be deleted when deleted the note
 
     return c.json({ data: { $id: noteId } }, 200);
