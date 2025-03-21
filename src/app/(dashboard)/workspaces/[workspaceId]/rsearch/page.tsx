@@ -7,7 +7,7 @@ const RSearchPage = async () => {
 
   // redirects to sign in if no user
   if (!user) {
-    return redirect('/sign-in');
+    redirect('/sign-in');
   }
 
   return <RSearchClientPage />;

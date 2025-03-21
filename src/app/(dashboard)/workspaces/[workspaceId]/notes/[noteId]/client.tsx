@@ -1,6 +1,6 @@
 'use client';
 const NotesIdClientPage = () => {
-  return <div>Coming Soon....</div>;
+  return <div>This is notes id client page</div>;
 };
 
 export default NotesIdClientPage;

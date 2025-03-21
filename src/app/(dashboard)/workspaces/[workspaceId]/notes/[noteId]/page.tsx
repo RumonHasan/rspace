@@ -1,9 +1,9 @@
-import { useCurrent } from '@/features/auth/api/user-current';
+import { getCurrent } from '@/features/auth/queries';
 import { redirect } from 'next/navigation';
 import NotesIdClientPage from './client';
 
-const NotesIdPage = () => {
-  const user = useCurrent();
+const NotesIdPage = async () => {
+  const user = await getCurrent();
 
   if (!user) {
     return redirect('/sign-in');

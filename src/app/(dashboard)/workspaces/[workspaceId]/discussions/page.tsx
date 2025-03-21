@@ -21,7 +21,6 @@ const DiscussionPage = () => {
     return <PageError message="No Channels Available" />;
   }
 
-
   if (channels?.total > 0) {
     redirect(
       `/workspaces/${workspaceId}/discussions/${channels?.documents[0].$id}`

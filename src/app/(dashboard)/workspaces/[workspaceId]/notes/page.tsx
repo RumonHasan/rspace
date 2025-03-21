@@ -1,13 +1,13 @@
 import NotesClientPage from './client';
 
-import { useCurrent } from '@/features/auth/api/user-current';
+import { getCurrent } from '@/features/auth/queries';
 import { redirect } from 'next/navigation';
 
-const NotesPage = () => {
-  const user = useCurrent();
+const NotesPage = async () => {
+  const user = await getCurrent();
 
   if (!user) {
-    return redirect('/sign-in');
+    redirect('/sign-in');
   }
 
   return <NotesClientPage />;
