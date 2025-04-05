@@ -10,7 +10,9 @@ export const useGetAiChats = ({ workspaceId, limit }: UseGetAiChatsProps) => {
   const query = useQuery({
     queryKey: ['ai-chats', workspaceId],
     queryFn: async () => {
-      const response = await client.api.rsearch['ai-chats'].$get({
+      const response = await client.api.rsearch['recent-searches'][
+        'ai-chats'
+      ].$get({
         query: {
           workspaceId,
           ...(limit !== undefined && { limit: limit.toString() }), // passing limit as string when its not undefined

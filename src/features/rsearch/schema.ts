@@ -7,6 +7,7 @@ export const searchSchema = z.object({
 
 // for ui
 export const AiChatSchema = z.object({
+  id: z.string(),
   query: z.string(),
   workspaceId: z.string(),
   isHuman: z.boolean(),

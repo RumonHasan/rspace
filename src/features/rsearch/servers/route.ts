@@ -9,9 +9,35 @@ import { searchSchema } from '../schema';
 import { generateSonarResponse } from '../utils/perplexity';
 
 const app = new Hono()
+
+  // get a single chat details after finding the response id
+  .get('/:aiChatResponseId', sessionMiddleware, async (c) => {
+    const user = c.get('user');
+    const databases = c.get('databases');
+    const { aiChatResponseId } = c.req.param();
+    // since the response is reply by ai it will contain both query and response
+    const aiChatResponse = await databases.getDocument(
+      DATABASE_ID,
+      AI_CHAT_ID,
+      aiChatResponseId
+    );
+
+    const member = await getMember({
+      workspaceId: aiChatResponse.workspaceId,
+      databases,
+      userId: user.$id,
+    });
+
+    if (!member) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    return c.json({ data: aiChatResponse }, 200);
+  })
+
   // get all the sonar responses under same workspace
   .get(
-    '/ai-chats',
+    '/recent-searches/ai-chats',
     sessionMiddleware,
     zValidator(
       'query',
@@ -21,6 +47,7 @@ const app = new Hono()
       const user = c.get('user');
       const databases = c.get('databases');
       const { workspaceId, limit } = c.req.valid('query');
+      console.log(workspaceId, limit);
 
       const member = await getMember({
         databases,
@@ -35,10 +62,10 @@ const app = new Hono()
       const queries = [
         Query.equal('workspaceId', workspaceId),
         Query.orderDesc('$createdAt'),
+        Query.equal('isHuman', false),
       ];
-      if (limit) {
+      if (limit && limit >= 6) {
         queries.push(Query.limit(limit));
-        queries.push(Query.equal('isHuman', false));
       }
       const fetchedAiChats = await databases.listDocuments(
         DATABASE_ID,

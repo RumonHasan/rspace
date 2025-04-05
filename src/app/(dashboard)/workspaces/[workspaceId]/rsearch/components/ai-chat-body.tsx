@@ -3,12 +3,19 @@ import React, { useState } from 'react';
 import { AiChat } from '@/features/rsearch/schema';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { CopyCheck, CopyCheckIcon } from 'lucide-react';
+import { CopyCheck, CopyCheckIcon, NotebookIcon } from 'lucide-react';
 import {
   HoverCard,
   HoverCardTrigger,
   HoverCardContent,
 } from '@/components/ui/hover-card';
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { useCreateNoteModal } from '@/features/notes/hooks/use-create-note-modal';
 
 interface AiChatBodyProps {
   aiChats?: AiChat[];
@@ -16,6 +23,7 @@ interface AiChatBodyProps {
 
 const AiChatBody = ({ aiChats }: AiChatBodyProps) => {
   const [copyIndex, setCopyIndex] = useState<number | null>();
+  const { open: openCreateNoteModal } = useCreateNoteModal(); // hook to open use create note modal
   // Get only AI responses (isHuman: false), which contain both query and response
   const formattedAiChats = // received in descending order of messages sent ... reversing it to make the latest ones appear below
     aiChats?.filter((chat) => !chat.isHuman).reverse() || [];
@@ -31,6 +39,11 @@ const AiChatBody = ({ aiChats }: AiChatBodyProps) => {
         setCopyIndex(null);
       }, resetTime);
     });
+  };
+
+  // function to open create note modal and pass on the response and query as a new notes object
+  const handleCreateNoteModal = (aiChatResponseId: string) => {
+    openCreateNoteModal(aiChatResponseId); // passing the ai chat response id to get the particular ai chat
   };
 
   return (
@@ -78,19 +91,44 @@ const AiChatBody = ({ aiChats }: AiChatBodyProps) => {
                 top: '1rem',
               }}
             >
+              {/* Code for ai response actions current includes :
+               * CopyButton
+               * Create Notes Button
+               */}
               <div className="flex gap-2 items-center cursor-pointer">
-                {index === copyIndex ? (
-                  <CopyCheckIcon
-                    size={16}
-                    className="text-green-500 hover:text-green-600"
-                  />
-                ) : (
-                  <CopyCheck
-                    size={16}
-                    className="text-blue-500 hover:text-blue-600"
-                    onClick={() => copyToClipboard(chat.response, index)}
-                  />
-                )}
+                <div>
+                  {index === copyIndex ? (
+                    <CopyCheckIcon
+                      size={16}
+                      className="text-green-500 hover:text-green-600"
+                    />
+                  ) : (
+                    <CopyCheck
+                      size={16}
+                      className="text-blue-500 hover:text-blue-600"
+                      onClick={() => copyToClipboard(chat.response, index)}
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <NotebookIcon
+                          size={16}
+                          className="cursor-pointer text-blue-600"
+                          onClick={() => handleCreateNoteModal(chat.id)}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-white">
+                          Create A New Note From This Response
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
             </HoverCardContent>
           </HoverCard>

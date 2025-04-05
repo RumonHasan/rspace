@@ -21,6 +21,7 @@ const ChannelContextIdPage = () => {
   //TODO add proper typings
   const transformedAiChats =
     aiContextBasedChats?.documents.map((doc) => ({
+      id: doc.$id,
       query: doc.query, // map properties correctly based on actual structure
       workspaceId: doc.workspaceId,
       isHuman: doc.isHuman,

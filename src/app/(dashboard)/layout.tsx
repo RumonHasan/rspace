@@ -7,6 +7,7 @@ import { CreateWorkspaceModal } from '@/features/workspaces/components/create-wo
 import { getCurrent } from '@/features/auth/queries';
 import LandingPage from '@/components/landing-page';
 import LandingPageNavbar from '@/components/landing-page-navbar';
+import { CreateNoteModal } from '@/features/notes/components/createNoteModal';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -34,6 +35,7 @@ const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
       <CreateWorkspaceModal />
       <CreateProjectModal />
       <CreateTaskModal />
+      <CreateNoteModal />
       <EditTaskModal />
       <div className="flex w-full h-full">
         <div className="fixed left-0 top-0 hidden lg:block lg:w-[264px] h-full overflow-y-auto">
