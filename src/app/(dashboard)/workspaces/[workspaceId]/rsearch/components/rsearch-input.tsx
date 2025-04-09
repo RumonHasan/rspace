@@ -48,7 +48,7 @@ const RSearchInput = ({ setIsAiResponding }: RSearchInputProps) => {
         {
           onSuccess: (response) => {
             if (!response?.data) {
-              console.error('No data in response');
+
               return;
             }
             const chatContextId = response.data.response?.chatContextId;

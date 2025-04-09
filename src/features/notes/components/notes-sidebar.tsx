@@ -110,7 +110,7 @@ const NotesSidebar = () => {
           <PlusCircleIcon className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
         </Button>
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         {notes?.documents.map((note: Note) => {
           const isSelected = isInNotesView && currentNoteId === note.$id;
 
@@ -118,32 +118,36 @@ const NotesSidebar = () => {
             <div
               key={note.$id}
               className={cn(
-                'group relative flex items-center justify-between gap-2 p-1 w-full text-left rounded-md hover:bg-muted transition cursor-pointer',
-                isSelected && 'border border-primary'
+                'group relative flex items-center px-3 py-2 w-full text-left rounded-lg transition-all',
+                isSelected
+                  ? 'bg-primary/10 border-l-4 border-l-primary'
+                  : 'hover:bg-muted',
+                'cursor-pointer'
               )}
             >
               <div
                 onClick={() => handleSelectNote(note)}
-                className="flex items-center gap-2 flex-1"
+                className="flex items-center gap-3 flex-1 overflow-hidden"
               >
-                <NotebookIcon className="w-4 h-4" />
-                <p className="truncate">
-                  {note.noteTitle.length > 20
-                    ? note.noteTitle.slice(0, 20) + '...'
+                <NotebookIcon className="w-4 h-4 text-primary/70 flex-shrink-0" />
+                <p className="truncate text-sm font-medium">
+                  {note.noteTitle.length > 25
+                    ? note.noteTitle.slice(0, 25) + '...'
                     : note.noteTitle}
                 </p>
               </div>
 
               <Button
                 onClick={(e) => {
-                  e.stopPropagation(); // prevent navigating when deleting
+                  e.stopPropagation();
                   handleDeleteNote(note.$id);
                 }}
-                variant={'ghost'}
+                variant="ghost"
                 disabled={isDeletingNote}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-100"
+                className="opacity-0 group-hover:opacity-100 h-8 w-8 p-0 rounded-full hover:bg-red-100 transition-opacity ml-2 flex-shrink-0"
+                aria-label="Delete note"
               >
-                <DeleteIcon className="w-4 h-4 text-destructive" />
+                <DeleteIcon className="w-3.5 h-3.5 text-destructive" />
               </Button>
             </div>
           );
