@@ -186,7 +186,7 @@ export const SearchBar = () => {
                       {filteredTasks?.map((task) => (
                         <CommandItem
                           key={task?.$id}
-                          value={task?.name}
+                          value={`${task.$id}-${task.name}`}
                           className="cursor-pointer"
                         >
                           <div
@@ -211,7 +211,7 @@ export const SearchBar = () => {
                         filteredProjects?.map((project) => (
                           <CommandItem
                             key={project.$id}
-                            value={project.name}
+                            value={`${project.$id}-${project.name}`}
                             className="cursor-pointer"
                           >
                             <div
@@ -241,7 +241,7 @@ export const SearchBar = () => {
                         filteredNotes?.map((note) => (
                           <CommandItem
                             key={note.$id}
-                            value={note.noteTitle}
+                            value={`${note.$id}-${note.noteTitle}`}
                             className="cursor-pointer"
                           >
                             <div
