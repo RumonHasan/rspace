@@ -14,10 +14,13 @@ import { useGetSearchBarTasks } from '@/features/tasks/api/use-get-search-bar-ta
 import { useGetSearchBarProjects } from '@/features/projects/api/use-get-search-bar-projects';
 import { MembersAvatar } from '@/features/members/components/members-avatar';
 import { Task } from '@/features/tasks/types';
-import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Project } from '@/features/projects/types';
 import { ProjectAvatar } from '@/features/projects/components/projects-avatar';
+import { useGetAllNotes } from '@/features/notes/api/useGetAllNotes';
+import { Note } from '@/features/notes/types';
+import { NotebookIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface FilteredTaskProps extends Task {
   assigneeName?: string;
@@ -32,12 +35,16 @@ export const SearchBar = () => {
     useGetSearchBarProjects({
       workspaceId,
     });
+  const { data: searchBarNotes, isLoading: isLoadingSearchbarNotes } =
+    useGetAllNotes({ workspaceId });
 
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [commandIsOpen, setCommandIsOpen] = useState(false);
   const commandContainerRef = useRef<HTMLDivElement>(null);
   const [originalTasks, setOriginalTasks] = useState<FilteredTaskProps[]>([]);
   const [originalProjects, setOriginalProjects] = useState<Project[]>([]);
+  const [originalNotes, setOriginalNotes] = useState<Note[]>([]);
 
   // adding the original projects to the state
   useEffect(() => {
@@ -48,6 +55,16 @@ export const SearchBar = () => {
       setOriginalProjects(mappedProjects);
     }
   }, [searchBarProjects]);
+
+  // adding the original notes to the state
+  useEffect(() => {
+    if (searchBarNotes?.documents) {
+      const mappedNotes = searchBarNotes?.documents.map((note) => ({
+        ...note,
+      })) as Note[];
+      setOriginalNotes(mappedNotes);
+    }
+  }, [searchBarNotes]);
 
   // Close the command if clicked outside
   useEffect(() => {
@@ -79,10 +96,21 @@ export const SearchBar = () => {
   const filteredProjects = useMemo(() => {
     if (search.trim() === '') return originalProjects;
     const searchTerm = search.toLowerCase();
-    return searchBarProjects?.documents.filter((project) =>
+    return originalProjects.filter((project) =>
       project?.name.toLowerCase().includes(searchTerm)
     );
-  }, [originalProjects, search, searchBarProjects?.documents]);
+  }, [originalProjects, search]);
+
+  // filtered Notes
+  const filteredNotes = useMemo(() => {
+    if (search.trim() === '') return originalNotes;
+    const searchTerm = search.toLowerCase();
+    return originalNotes.filter(
+      (note) =>
+        note?.noteTitle?.toLowerCase().includes(searchTerm) ||
+        note?.note?.toLowerCase().includes(searchTerm)
+    );
+  }, [originalNotes, search]);
 
   // filtered Tasks
   const filteredTasks = useMemo(() => {
@@ -120,6 +148,16 @@ export const SearchBar = () => {
     });
   }, [search, originalTasks]);
 
+  // function to close the command line and clear search when item is selected when an item is selected
+  const handleItemClick = (href: string) => {
+    console.log('click', href);
+    if (href) {
+      setCommandIsOpen(false);
+      setSearch('');
+      router.push(href);
+    }
+  };
+
   return (
     <div ref={commandContainerRef} className="relative w-full">
       <Command className="rounded-lg border shadow-sm" shouldFilter={false}>
@@ -141,6 +179,7 @@ export const SearchBar = () => {
                   <TabsList>
                     <TabsTrigger value="tasks">Tasks</TabsTrigger>
                     <TabsTrigger value="projects">Projects</TabsTrigger>
+                    <TabsTrigger value="notes">Notes</TabsTrigger>
                   </TabsList>
                   <TabsContent value="tasks">
                     <CommandGroup heading="Global Tasks">
@@ -148,17 +187,19 @@ export const SearchBar = () => {
                         <CommandItem
                           key={task?.$id}
                           value={task?.name}
-                          asChild
                           className="cursor-pointer"
                         >
-                          <Link
-                            href={`/workspaces/${workspaceId}/tasks/${task.$id}`}
+                          <div
+                            className="flex flex-row gap-4 items-center"
+                            onClick={() =>
+                              handleItemClick(
+                                `/workspaces/${workspaceId}/tasks/${task.$id}`
+                              )
+                            }
                           >
-                            <div className="flex flex-row gap-4 items-center justify-center">
-                              <MembersAvatar name={task?.name ?? ''} />
-                              <span>{task?.name}</span>
-                            </div>
-                          </Link>
+                            <MembersAvatar name={task?.name ?? ''} />
+                            <span>{task?.name}</span>
+                          </div>
                         </CommandItem>
                       ))}
                       <CommandEmpty>No Tasks Found</CommandEmpty>
@@ -171,24 +212,52 @@ export const SearchBar = () => {
                           <CommandItem
                             key={project.$id}
                             value={project.name}
-                            asChild
                             className="cursor-pointer"
                           >
-                            <Link
-                              href={`/workspaces/${workspaceId}/projects/${project.$id}`}
+                            <div
+                              className="flex flex-row gap-4  items-center"
+                              onClick={() =>
+                                handleItemClick(
+                                  `/workspaces/${workspaceId}/projects/${project.$id}`
+                                )
+                              }
                             >
-                              <div className="flex flex-row gap-4 mb-2 mt-2 ml-2 items-center justify-center">
-                                <ProjectAvatar
-                                  className="size-3"
-                                  name={project.name}
-                                  image={project.imageUrl}
-                                />
-                                <span>{project?.name}</span>
-                              </div>
-                            </Link>
+                              <ProjectAvatar
+                                className="size-3"
+                                name={project.name}
+                                image={project.imageUrl}
+                              />
+                              <span>{project?.name}</span>
+                            </div>
                           </CommandItem>
                         ))}
                       <CommandEmpty>No Projects Found</CommandEmpty>
+                    </CommandGroup>
+                  </TabsContent>
+
+                  <TabsContent value="notes">
+                    <CommandGroup heading="Global Notes">
+                      {!isLoadingSearchbarNotes &&
+                        filteredNotes?.map((note) => (
+                          <CommandItem
+                            key={note.$id}
+                            value={note.noteTitle}
+                            className="cursor-pointer"
+                          >
+                            <div
+                              className="flex flex-row gap-4 items-center"
+                              onClick={() =>
+                                handleItemClick(
+                                  `/workspaces/${workspaceId}/notes/${note.$id}`
+                                )
+                              }
+                            >
+                              <NotebookIcon className="w-4 h-4 text-blue-300" />
+                              <span>{note?.noteTitle}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      <CommandEmpty>No Notes Found</CommandEmpty>
                     </CommandGroup>
                   </TabsContent>
                 </Tabs>
